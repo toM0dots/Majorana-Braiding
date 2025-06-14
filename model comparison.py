@@ -631,7 +631,7 @@ def main_test1():
     # print("slope 2L:", slope3)
     
 
-def main():
+def main1():
     chain1 = chain_builder_2L(1000, 4)
     times1, density1 = evolution_annihilate_2L(chain1, 10000, 0)
     chain2 = chain_builder_2L(1000, 4)
@@ -682,5 +682,61 @@ def main_test3():
     plt.savefig('classical_density.png')
     plt.show()
     
+def main():
+
+
+    num_trials = 30  # number of seeds/runs to average
+    L = 500
+    rho = 4
+    Tmax = 400000
+    p_values = [0, 0.2, 0.5, 1]  # different probabilities for your parameter
+
+    # For storing average results
+    all_results = {}
+
+    for p in p_values:
+        densities = []
+    
+        for _ in range(num_trials):
+            chain = chain_builder_2L(L, rho)
+            times, density = evolution_annihilate_2L(chain, Tmax, p)
+            total_density = density[:, 0] + density[:, 1]
+            densities.append(total_density)
+    
+        # Convert to numpy array and compute average and std
+        densities = np.array(densities)  # shape: (num_trials, time_steps)
+        mean_density = np.mean(densities, axis=0)
+        std_density = np.std(densities, axis=0)
+    
+        # Save for plotting
+        all_results[p] = {
+            'times': times,
+            'mean': mean_density,
+            'std': std_density
+        }
+
+    # Reference density
+    density_ref = 2000 * 4 / (math.sqrt(8 * math.pi) * np.sqrt(times[1:]))
+    
+    # Plotting
+    for p, color in zip(p_values, ['purple', 'blue', 'orange']):
+        result = all_results[p]
+        plt.plot(result['times'], result['mean'], label=f'Total Density p={p}', color=color)
+        # Optional: error band
+        # plt.fill_between(result['times'], result['mean'] - result['std'], result['mean'] + result['std'],
+        #                  color=color, alpha=0.2)
+    
+    plt.plot(times[1:], density_ref, label='Reference density', color='red', linestyle='--')
+    
+    plt.xlabel('Time')
+    plt.ylabel('Density')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.title(f'Averaged Majorana Chain Density (L = {L}, Trials = {num_trials})')
+    plt.legend()
+    plt.grid()
+    plt.savefig('Two Layer model trend averaged', dpi = 100)
+    plt.show()
+
 if __name__ == "__main__":
     main()
