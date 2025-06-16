@@ -212,9 +212,9 @@ def chain_builder_2L(N, rho):
         chain[i * rho][0][0] = 1 # initially all pairs have fermion number 1
         chain[i * rho][1][0] = True
         chain[i * rho][2][0] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
-        chain[(i * rho+1) % (N * rho)][0][1] = 1 # initially all pairs have fermion number 1
-        chain[(i * rho+1) % (N * rho)][1][1] = True
-        chain[(i * rho+1) % (N * rho)][2][1] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
+        chain[(i * rho) % (N * rho)][0][1] = 1 # initially all pairs have fermion number 1
+        chain[(i * rho) % (N * rho)][1][1] = True
+        chain[(i * rho) % (N * rho)][2][1] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
     return chain
     
 def hopping_annihilate_2L(chain, p):
@@ -686,10 +686,10 @@ def main():
 
 
     num_trials = 30  # number of seeds/runs to average
-    L = 500
+    L = 100
     rho = 4
-    Tmax = 400000
-    p_values = [0, 0.2, 0.5, 1]  # different probabilities for your parameter
+    Tmax = 80000
+    p_values = [0, 0.2, 0.5, 0.7, 1]  # different probabilities for your parameter
 
     # For storing average results
     all_results = {}
@@ -716,17 +716,17 @@ def main():
         }
 
     # Reference density
-    density_ref = 2000 * 4 / (math.sqrt(8 * math.pi) * np.sqrt(times[1:]))
+    density_ref = 400 * 4 / (math.sqrt(8 * math.pi) * np.sqrt(times[1:]))
     
     # Plotting
-    for p, color in zip(p_values, ['purple', 'blue', 'orange']):
+    for p, color in zip(p_values, ['purple', 'blue', 'orange', 'green', 'red']):
         result = all_results[p]
         plt.plot(result['times'], result['mean'], label=f'Total Density p={p}', color=color)
         # Optional: error band
         # plt.fill_between(result['times'], result['mean'] - result['std'], result['mean'] + result['std'],
         #                  color=color, alpha=0.2)
     
-    plt.plot(times[1:], density_ref, label='Reference density', color='red', linestyle='--')
+    plt.plot(times[1:], density_ref, label=r'$\frac{4 N}{8 \pi t}$', color='brown', linestyle='--')
     
     plt.xlabel('Time')
     plt.ylabel('Density')
