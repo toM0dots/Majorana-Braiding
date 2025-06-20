@@ -212,9 +212,9 @@ def chain_builder_2L(N, rho):
         chain[i * rho][0][0] = 1 # initially all pairs have fermion number 1
         chain[i * rho][1][0] = True
         chain[i * rho][2][0] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
-        chain[(i * rho) % (N * rho)][0][1] = 1 # initially all pairs have fermion number 1
-        chain[(i * rho) % (N * rho)][1][1] = True
-        chain[(i * rho) % (N * rho)][2][1] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
+        chain[i * rho][0][1] = 1 # initially all pairs have fermion number 1
+        chain[i * rho][1][1] = True
+        chain[i * rho][2][1] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
     return chain
     
 def hopping_annihilate_2L(chain, p):
