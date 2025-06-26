@@ -32,8 +32,10 @@ def hopping(chain_):
     chain = chain_.copy()
     N = len(chain)
     index = np.where(chain[:,1] == True)[0] 
+    Nt = len(index)  # Number of Majoranas present
     # i =random.randint(0, N-1)
-    for k in range(len(index)):
+    for _ in range(Nt):
+        index = np.where(chain[:, 1] == True)[0]  # Update indices of Majoranas that are present
         i = random.choice(index)
         hope_direction = np.random.choice([-1, 1])
         if chain[i][0] == None: #if the site is empty
