@@ -16,10 +16,10 @@ def chain_builder(N, rho):
     """
     if N % 2 != 0:
         raise ValueError("N must be even for a Majorana chain.")
-    chain = np.empty((N * rho, 3), dtype=object)
+    chain = np.full((N* rho, 3) -10) 
     for i in range(N):
         chain[i * rho][0] = 1 # initially all pairs have fermion number 1
-        chain[i * rho][1] = True
+        chain[i * rho][1] = 47
         chain[i * rho][2] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
     return chain
 
@@ -28,33 +28,33 @@ def hopping_annihilate(chain):
      # get the index of Majorana operators
    
     # i =random.randint(0, N-1)
-    index = np.where(chain[:,1]==True)[0]
+    index = np.where(chain[:,1]==47)[0]
     for k in range(len(index)):
         i = random.choice(index)   
         hope_direction = random.choice([-1, 1])
-        if  chain[:, 2].tolist().count(None) == N: #if all sites are empty
+        if  chain[:, 2].tolist().count(-10) == N: #if all sites are empty
 
             return chain, 0
-        if chain[i][0] == None: #if the site is empty
+        if chain[i][0] == -10: #if the site is empty
             pass
 
-        elif chain[(i+hope_direction) % N][0] == None: #if the site to arrive is empty
+        elif chain[(i+hope_direction) % N][0] == -10: #if the site to arrive is empty
             chain[(i+hope_direction) % N][0] = chain[i][0]
-            chain[i][0] = None
+            chain[i][0] = -10
             chain[(i+hope_direction) % N][1] = chain[i][1]
-            chain[i][1] = None
+            chain[i][1] = -10
             chain[(i+hope_direction) % N][2] = chain[i][2]
-            chain[i][2] = None
+            chain[i][2] = -10
             pass
 
         elif chain[(i+hope_direction) % N][2] == chain[i][2]:  #if paired under periodic boundary condition
             if chain[i][0] == 0 and chain[(i+hope_direction) % N][0] == 0:
-                chain[i][0] = None
-                chain[(i+hope_direction) % N][0] = None
-                chain[i][1] = None
-                chain[(i+hope_direction) % N][1] = None
-                chain[i][2] = None
-                chain[(i+hope_direction) % N][2] = None
+                chain[i][0] = -10
+                chain[(i+hope_direction) % N][0] = -10
+                chain[i][1] = -10
+                chain[(i+hope_direction) % N][1] = -10
+                chain[i][2] = -10
+                chain[(i+hope_direction) % N][2] = -10
                 
         elif chain[i][2] !=  chain[(i+hope_direction) % N][2]:
             rows_i = np.where(chain[:, 2] == chain[i][2])[0]
@@ -73,12 +73,12 @@ def hopping_annihilate(chain):
             min_index = min(pair_index, pair_index_i)
             max_index = max(pair_index, pair_index_i)
             if ferminon_number == 0:
-                chain[i][0] = None
-                chain[(i+hope_direction) % N][0] = None
-                chain[i][1] = None
-                chain[(i+hope_direction) % N][1] = None
-                chain[i][2] = None
-                chain[(i+hope_direction) % N][2] = None
+                chain[i][0] = -10
+                chain[(i+hope_direction) % N][0] = -10
+                chain[i][1] = -10
+                chain[(i+hope_direction) % N][1] = -10
+                chain[i][2] = -10
+                chain[(i+hope_direction) % N][2] = -10
 
                 chain[outside_index_i][0] = (n_sum-ferminon_number) % 2 # conservation of ferminon number
                 chain[outside_index][0] = (n_sum-ferminon_number) % 2  
@@ -106,7 +106,7 @@ def hopping_annihilate(chain):
                     chain[outside_index_i][2] = min_index
                     chain[outside_index][2] = min_index
                 
-    density = N - chain[:,2].tolist().count(None)  # Count the number of empty sites
+    density = N - chain[:,2].tolist().count(-10)  # Count the number of empty sites
     return chain, density
     
     
@@ -129,34 +129,34 @@ def hopping_classical(chain, p):
      # get the index of Majorana operators
    
     # i =random.randint(0, N-1)
-    index = np.where(chain[:,1]==True)[0]
+    index = np.where(chain[:,1]==47)[0]
     for _ in range(len(index)):
         i = random.choice(index)
         hope_direction = random.choice([-1, 1])
-        if  chain[:, 2].tolist().count(None) == N: #if all sites are empty
+        if  chain[:, 2].tolist().count(-10) == N: #if all sites are empty
 
             return chain, 0
-        if chain[i][0] == None: #if the site is empty
+        if chain[i][0] == -10: #if the site is empty
             pass
 
-        elif chain[(i+hope_direction) % N][0] == None: #if the site to arrive is empty
+        elif chain[(i+hope_direction) % N][0] == -10: #if the site to arrive is empty
             chain[(i+hope_direction) % N][0] = chain[i][0]
-            chain[i][0] = None
+            chain[i][0] = -10
             chain[(i+hope_direction) % N][1] = chain[i][1]
-            chain[i][1] = None
+            chain[i][1] = -10
             chain[(i+hope_direction) % N][2] = chain[i][2]
-            chain[i][2] = None
+            chain[i][2] = -10
             pass
 
         else:
             r = random.random()
             if r <p :
-                chain[i][0] = None
-                chain[(i+hope_direction) % N][0] = None
-                chain[i][1] = None
-                chain[(i+hope_direction) % N][1] = None
-                chain[i][2] = None
-                chain[(i+hope_direction) % N][2] = None
+                chain[i][0] = -10
+                chain[(i+hope_direction) % N][0] = -10
+                chain[i][1] = -10
+                chain[(i+hope_direction) % N][1] = -10
+                chain[i][2] = -10
+                chain[(i+hope_direction) % N][2] = -10
             else:
                 pass
         # elif chain[i][2] !=  chain[(i+hope_direction) % N][2]:
@@ -166,21 +166,21 @@ def hopping_classical(chain, p):
         #     outside_index_i = [x for x in rows_i if x != i][0]
         #     outside_index = [x for x in rows if x != (i+hope_direction)%N][0]
             
-        #     chain[i][0] = None
-        #     chain[(i+hope_direction) % N][0] = None
-        #     chain[i][1] = None
-        #     chain[(i+hope_direction) % N][1] = None
-        #     chain[i][2] = None
-        #     chain[(i+hope_direction) % N][2] = None
-        #     chain[outside_index_i][0] = None
-        #     chain[outside_index][0] = None
-        #     chain[outside_index_i][1] = None
-        #     chain[outside_index][1] = None
-        #     chain[outside_index_i][2] = None
-        #     chain[outside_index][2] = None
+        #     chain[i][0] = -10
+        #     chain[(i+hope_direction) % N][0] = -10
+        #     chain[i][1] = -10
+        #     chain[(i+hope_direction) % N][1] = -10
+        #     chain[i][2] = -10
+        #     chain[(i+hope_direction) % N][2] = -10
+        #     chain[outside_index_i][0] = -10
+        #     chain[outside_index][0] = -10
+        #     chain[outside_index_i][1] = -10
+        #     chain[outside_index][1] = -10
+        #     chain[outside_index_i][2] = -10
+        #     chain[outside_index][2] = -10
 
                 
-    density = N - chain[:,2].tolist().count(None)  # Count the number of empty sites
+    density = N - chain[:,2].tolist().count(-10)  # Count the number of empty sites
     return chain, density
     
     
@@ -207,57 +207,58 @@ def chain_builder_2L(N, rho):
     """
     if N % 2 != 0:
         raise ValueError("N must be even for a Majorana chain.")
-    chain = np.empty((N * rho, 3, 2), dtype=object)
+    chain = np.full(( N*rho, 3, 2 ), -10) 
     for i in range(N):
-        chain[(i * rho) % (N * rho)][0][0] = 0 # initially all pairs have fermion number 1
-        chain[(i * rho) % (N * rho)][1][0] = True
+        chain[(i * rho) % (N * rho)][0][0] = 1 # initially all pairs have fermion number 1
+        chain[(i * rho) % (N * rho)][1][0] = 47
         chain[(i * rho) % (N * rho)][2][0] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
-        chain[(i * rho ) % (N * rho)][0][1] = 0 # initially all pairs have fermion number 1
-        chain[(i * rho ) % (N * rho)][1][1] = True
+        chain[(i * rho ) % (N * rho)][0][1] = 1 # initially all pairs have fermion number 1
+        chain[(i * rho ) % (N * rho)][1][1] = 47
         chain[(i * rho ) % (N * rho)][2][1] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
     return chain
     
 def hopping_annihilate_2L(chain, p):
     N = chain.shape[0]  # Number of sites in the chain
 
-    index0 = np.where(chain[:,1, 0]==True)[0] # get the index of Majorana operators
-    index1 = np.where(chain[:,1, 1]==True)[0]
+    index0 = np.where(chain[:,1, 0]==47)[0] # get the index of Majorana operators
+    index1 = np.where(chain[:,1, 1]==47)[0]
     Nt0 = len(index0)
     Nt1 = len(index1)
     Nt = Nt0 + Nt1
     for _ in range(Nt):
-         if  chain[:, 2, 0].tolist().count(None) == N or chain[:, 2, 1].tolist().count(None) == N: #if all sites are empty
+         if  chain[:, 2, 0].tolist().count(-10) == N or chain[:, 2, 1].tolist().count(-10) == N: #if all sites are empty
     
              return chain, 0, 0
+             
          if random.random() < Nt0/ (Nt0 + Nt1):  
-            index0 = np.where(chain[:,0, 0]!=None)[0]
+            index0 = np.where(chain[:,0, 0]!=-10)[0]
             i = random.choice(index0)
             hop_direction0 = random.choice([-1, 1])
             
             
-            if chain[i][0][0] == None: #if the site is empty
+            if chain[i][0][0] == -10: #if the site is empty
                 pass
     
-            elif chain[(i+hop_direction0) % N][0][0] == None: #if the site to arrive is empty
+            elif chain[(i+hop_direction0) % N][0][0] == -10: #if the site to arrive is empty
                 
                 r = random.random()
                 if r < p:
-                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != None: #if the site is empty
+                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
                         # get the index of paired Majorana
                         pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                         pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
                         partner_i = [x for x in pair_i if x != i][0]
                         partner_j = [x for x in pair_j if x != (i+hop_direction0)%N][0]
                         
-                        if partner_j == None:
-                            raise ValueError("Partner Majorana is None, check the chain structure.")
+                        if partner_j == -10:
+                            raise ValueError("Partner Majorana is -10, check the chain structure.")
                         # flip the fermionic parity
                         chain[i][0][0] = (chain[i][0][0] +1 ) % 2
                         chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
                         chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
                         chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
     
-                    elif hop_direction0 >0 and chain[i][2][1] != None:
+                    elif hop_direction0 >0 and chain[i][2][1] != -10:
                         # get the index of paired Majorana
                         pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                         pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
@@ -271,17 +272,17 @@ def hopping_annihilate_2L(chain, p):
                         chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
     
                 chain[(i+hop_direction0) % N][0][0] = chain[i][0][0]
-                chain[i][0][0] = None
+                chain[i][0][0] = -10
                 chain[(i+hop_direction0) % N][1][0] = chain[i][1][0]
-                chain[i][1][0] = None
+                chain[i][1][0] = -10
                 chain[(i+hop_direction0) % N][2][0] = chain[i][2][0]
-                chain[i][2][0] = None
+                chain[i][2][0] = -10
     
             elif chain[(i+hop_direction0) % N][2][0] == chain[i][2][0]:  #if paired under periodic boundary condition
     
                 r = random.random()
                 if r < p:
-                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != None: #if the site is empty
+                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
                         # get the index of paired Majorana
                         pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                         pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
@@ -294,7 +295,7 @@ def hopping_annihilate_2L(chain, p):
                         chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
                         chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
     
-                    elif hop_direction0 >0 and chain[i][2][1] != None:
+                    elif hop_direction0 >0 and chain[i][2][1] != -10:
                         # get the index of paired Majorana
                         pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                         pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
@@ -309,16 +310,16 @@ def hopping_annihilate_2L(chain, p):
     
                 if chain[i][0][0] == 0 and chain[(i+hop_direction0) % N][0][0] == 0:
                     
-                    chain[i][0][0] = None
-                    chain[(i+hop_direction0) % N][0][0] = None
-                    chain[i][1][0] = None
-                    chain[(i+hop_direction0) % N][1][0] = None
-                    chain[i][2][0] = None
-                    chain[(i+hop_direction0) % N][2][0] = None
+                    chain[i][0][0] = -10
+                    chain[(i+hop_direction0) % N][0][0] = -10
+                    chain[i][1][0] = -10
+                    chain[(i+hop_direction0) % N][1][0] = -10
+                    chain[i][2][0] = -10
+                    chain[(i+hop_direction0) % N][2][0] = -10
                 else:
                     r = random.random()
                     if r < p:
-                        if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != None: #if the site is empty
+                        if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
                             # get the index of paired Majorana
                             pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                             pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
@@ -331,7 +332,7 @@ def hopping_annihilate_2L(chain, p):
                             chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
                             chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
     
-                        elif hop_direction0 >0 and chain[i][2][1] != None:
+                        elif hop_direction0 >0 and chain[i][2][1] != -10:
                             # get the index of paired Majorana
                             pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                             pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
@@ -358,15 +359,11 @@ def hopping_annihilate_2L(chain, p):
                 rows = np.where(chain[:, 2, 0] == chain[(i+hop_direction0) % N][2][0])[0]
                 outside_index_i = [x for x in rows_i if x != i][0]
                 outside_index = [x for x in rows if x != (i+hop_direction0)%N][0]
-                n_sum = chain[i][0][0] + chain[(i+hop_direction0) % N][0][0]
-                ferminon_number = random.choice([0, 1])
-                chain[i][0][0] = ferminon_number
-                chain[(i+hop_direction0) % N][0][0] = ferminon_number
-    
-                # braiding
+                
+                # 1st braiding
                 r = random.random()
                 if r < p:
-                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != None: #if the site is empty
+                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
                         # get the index of paired Majorana
                         pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                         pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
@@ -375,11 +372,11 @@ def hopping_annihilate_2L(chain, p):
     
                         # flip the fermionic parity
                         chain[i][0][0] = (chain[i][0][0] +1 ) % 2
-                        chain[(i+hop_direction0) % N][0][0] = (chain[(i+hop_direction0) % N][0][0] + 1) % 2
+                        chain[partner_i ][0][0] = (chain[partner_i ][0][0] + 1) % 2
                         chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
                         chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
     
-                    elif hop_direction0 >0 and chain[i][2][1] != None:
+                    elif hop_direction0 >0 and chain[i][2][1] != -10:
                         # get the index of paired Majorana
                         pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                         pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
@@ -388,7 +385,7 @@ def hopping_annihilate_2L(chain, p):
     
                         # flip the fermionic parity
                         chain[i][0][0] = (chain[i][0][0] +1 ) % 2
-                        chain[(i+hop_direction0) % N][0][0] = (chain[(i+hop_direction0) % N][0][0] + 1) % 2
+                        chain[partner_i ][0][0] = (chain[partner_i ][0][0] + 1) % 2
                         chain[i][0][1] = (chain[i][0][1]+ 1) % 2
                         chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
     
@@ -396,30 +393,36 @@ def hopping_annihilate_2L(chain, p):
                 pair_index_i = chain[i][2][0]
                 min_index = min(pair_index, pair_index_i)
                 max_index = max(pair_index, pair_index_i)
+
+                # repairing at collision after 1st braid and calculate the sum of parity
+                n_sum = chain[i][0][0] + chain[(i+hop_direction0) % N][0][0]
+                ferminon_number = random.choice([0, 1])
+                chain[i][0][0] = ferminon_number
+                chain[(i+hop_direction0) % N][0][0] = ferminon_number
     
                 if chain[i][0][0] == 0 and chain[(i+hop_direction0) % N][0][0] == 0:
                     # annihilate the collided pair
-                    chain[i][0][0] = None
-                    chain[i][1][0] = None
-                    chain[i][2][0] = None
-                    chain[(i+hop_direction0) % N][0][0] = None
-                    chain[(i+hop_direction0) % N][1][0] = None
-                    chain[(i+hop_direction0) % N][2][0] = None
+                    chain[i][0][0] = -10
+                    chain[i][1][0] = -10
+                    chain[i][2][0] = -10
+                    chain[(i+hop_direction0) % N][0][0] = -10
+                    chain[(i+hop_direction0) % N][1][0] = -10
+                    chain[(i+hop_direction0) % N][2][0] = -10
     
                     # update the partner pair
                     chain[outside_index_i][0][0] = n_sum % 2
-                    chain[outside_index_i][1][0] = True
+                    chain[outside_index_i][1][0] = 47
                     chain[outside_index_i][2][0] = min_index
                     chain[outside_index][0][0] = n_sum % 2
-                    chain[outside_index][1][0] = True
+                    chain[outside_index][1][0] = 47
                     chain[outside_index][2][0] = min_index
     
             
-    
+                # bound back and 2nd braid
                 elif chain[i][0][0] == 1 and chain[(i+hop_direction0) % N][0][0] == 1:
                     r = random.random()
                     if r < p:
-                        if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != None: #if the site is empty
+                        if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
                             # get the index of paired Majorana
                             pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                             pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
@@ -428,11 +431,11 @@ def hopping_annihilate_2L(chain, p):
     
                             # flip the fermionic parity
                             chain[i][0][0] = (chain[i][0][0] +1 ) % 2
-                            chain[(i+hop_direction0) % N][0][0] = (chain[(i+hop_direction0) % N][0][0] + 1) % 2
+                            chain[partner_i ][0][0] = (chain[partner_i ][0][0] + 1) % 2
                             chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
                             chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
     
-                        elif hop_direction0 >0 and chain[i][2][1] != None:
+                        elif hop_direction0 >0 and chain[i][2][1] != -10:
                             # get the index of paired Majorana
                             pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
                             pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
@@ -441,7 +444,7 @@ def hopping_annihilate_2L(chain, p):
     
                             # flip the fermionic parity
                             chain[i][0][0] = (chain[i][0][0] +1 ) % 2
-                            chain[(i+hop_direction0) % N][0][0] = (chain[(i+hop_direction0) % N][0][0] + 1) % 2
+                            chain[partner_i ][0][0] = (chain[partner_i ][0][0] + 1) % 2
                             chain[i][0][1] = (chain[i][0][1]+ 1) % 2
                             chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
                     # calculate the ferminon number of new arcs
@@ -462,21 +465,21 @@ def hopping_annihilate_2L(chain, p):
     
                     
          else:
-            index1 = np.where(chain[:,0, 1]!= None)[0] # get the index of Majorana operators
+            index1 = np.where(chain[:,0, 1]!= -10)[0] # get the index of Majorana operators
             j = random.choice(index1)
             hop_direction1 = random.choice([-1, 1])
-            if  chain[:, 2, 1].tolist().count(None) == N: #if all sites are empty
+            if  chain[:, 2, 1].tolist().count(-10) == N: #if all sites are empty
     
                 return chain, 0, 0
             
-            if chain[j][0][1] == None: #if the site is empty
+            if chain[j][0][1] == -10: #if the site is empty
                 pass
     
-            elif chain[(j+hop_direction1) % N][0][1] == None: #if the site to arrive is empty
+            elif chain[(j+hop_direction1) % N][0][1] == -10: #if the site to arrive is empty
     
                 q = random.random()
                 if q < p:
-                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != None: #if the site is empty
+                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
                         # get the index of paired Majorana
                         pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
                         pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
@@ -489,7 +492,7 @@ def hopping_annihilate_2L(chain, p):
                         chain[j][0][1] = (chain[j][0][1]+ 1) % 2
                         chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
     
-                    elif hop_direction1 <0 and chain[j][2][0] != None:
+                    elif hop_direction1 <0 and chain[j][2][0] != -10:
                         # get the index of paired Majorana
                         pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
                         pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
@@ -503,17 +506,17 @@ def hopping_annihilate_2L(chain, p):
                         chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
     
                 chain[(j+hop_direction1) % N][0][1] = chain[j][0][1]
-                chain[j][0][1] = None
+                chain[j][0][1] = -10
                 chain[(j+hop_direction1) % N][1][1] = chain[j][1][1]
-                chain[j][1][1] = None
+                chain[j][1][1] = -10
                 chain[(j+hop_direction1) % N][2][1] = chain[j][2][1]
-                chain[j][2][1] = None
+                chain[j][2][1] = -10
                 
             elif chain[(j+hop_direction1) % N][2][1] == chain[j][2][1]:  #if paired under periodic boundary condition
     
                 q = random.random()
                 if q < p:
-                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != None: #if the site is empty
+                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
                         # get the index of paired Majorana
                         pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
                         pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
@@ -524,9 +527,9 @@ def hopping_annihilate_2L(chain, p):
                         chain[(j+hop_direction1) % N][0][0] = (chain[(j+hop_direction1) % N][0][0] +1 ) % 2
                         chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
                         chain[j][0][1] = (chain[j][0][1]+ 1) % 2
-                        chain[(j+hop_direction1) % N][0][1] = (chain[(j+hop_direction1) % N][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
     
-                    elif hop_direction1 <0 and chain[j][2][0] != None:
+                    elif hop_direction1 <0 and chain[j][2][0] != -10:
                         # get the index of paired Majorana
                         pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
                         pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
@@ -537,20 +540,20 @@ def hopping_annihilate_2L(chain, p):
                         chain[j][0][0] = (chain[j][0][0] +1 ) % 2
                         chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
                         chain[j][0][1] = (chain[j][0][1]+ 1) % 2
-                        chain[(j+hop_direction1) % N][0][1] = (chain[(j+hop_direction1) % N][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
     
                 if chain[j][0][1] == 0 and chain[(j+hop_direction1) % N][0][1] == 0:       
-                    chain[j][0][1] = None
-                    chain[(j+hop_direction1) % N][0][1] = None
-                    chain[j][1][1] = None
-                    chain[(j+hop_direction1) % N][1][1] = None
-                    chain[j][2][1] = None
-                    chain[(j+hop_direction1) % N][2][1] = None
+                    chain[j][0][1] = -10
+                    chain[(j+hop_direction1) % N][0][1] = -10
+                    chain[j][1][1] = -10
+                    chain[(j+hop_direction1) % N][1][1] = -10
+                    chain[j][2][1] = -10
+                    chain[(j+hop_direction1) % N][2][1] = -10
     
                 else:
                     q = random.random()
                     if q < p:
-                        if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != None: #if the site is empty
+                        if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
                             # get the index of paired Majorana
                             pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
                             pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
@@ -561,9 +564,9 @@ def hopping_annihilate_2L(chain, p):
                             chain[(j+hop_direction1) % N][0][0] = (chain[(j+hop_direction1) % N][0][0] +1 ) % 2
                             chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
                             chain[j][0][1] = (chain[j][0][1]+ 1) % 2
-                            chain[(j+hop_direction1) % N][0][1] = (chain[(j+hop_direction1) % N][0][1]+ 1) % 2
+                            chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
     
-                        elif hop_direction1 <0 and chain[j][2][0] != None:
+                        elif hop_direction1 <0 and chain[j][2][0] != -10:
                             # get the index of paired Majorana
                             pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
                             pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
@@ -574,7 +577,7 @@ def hopping_annihilate_2L(chain, p):
                             chain[j][0][0] = (chain[j][0][0] +1 ) % 2
                             chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
                             chain[j][0][1] = (chain[j][0][1]+ 1) % 2
-                            chain[(j+hop_direction1) % N][0][1] = (chain[(j+hop_direction1) % N][0][1]+ 1) % 2
+                            chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
             
             elif chain[j][2][1] !=  chain[(j+hop_direction1) % N][2][1]:
     
@@ -584,15 +587,12 @@ def hopping_annihilate_2L(chain, p):
                 rows = np.where(chain[:, 2, 1] == chain[(j+hop_direction1) % N][2][1])[0]
                 outside_index_j = [x for x in rows_j if x != j][0]
                 outside_index = [x for x in rows if x != (j+hop_direction1)%N][0]
-                n_sum1 = chain[j][0][1] + chain[(j+hop_direction1) % N][0][1]
-                ferminon_number1 = random.choice([0, 1])
-                chain[j][0][1] = ferminon_number1
-                chain[(j+hop_direction1) % N][0][1] = ferminon_number1
+                
     
-                # braiding
+                # 1st braiding 
                 q = random.random()
                 if q < p:
-                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != None: #if the site is empty
+                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
                         # get the index of paired Majorana
                         pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
                         pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
@@ -603,9 +603,9 @@ def hopping_annihilate_2L(chain, p):
                         chain[(j+hop_direction1) % N][0][0] = (chain[(j+hop_direction1) % N][0][0] +1 ) % 2
                         chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
                         chain[j][0][1] = (chain[j][0][1]+ 1) % 2
-                        chain[(j+hop_direction1) % N][0][1] = (chain[(j+hop_direction1) % N][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
     
-                    elif hop_direction1 <0 and chain[j][2][0] != None:
+                    elif hop_direction1 <0 and chain[j][2][0] != -10:
                         # get the index of paired Majorana
                         pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
                         pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
@@ -616,34 +616,43 @@ def hopping_annihilate_2L(chain, p):
                         chain[j][0][0] = (chain[j][0][0] +1 ) % 2
                         chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
                         chain[j][0][1] = (chain[j][0][1]+ 1) % 2
-                        chain[(j+hop_direction1) % N][0][1] = (chain[(j+hop_direction1) % N][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
     
                 pair_index1 = chain[(j+hop_direction1) % N][2][1]
                 pair_index_j = chain[j][2][1]
                 min_index = min(pair_index1, pair_index_j)
                 max_index = max(pair_index1, pair_index_j)
+                # update the repairing index 
+
+                
+                
+                # repairing, and calculate the parity sum after braiding 
+                n_sum1 = chain[j][0][1] + chain[(j+hop_direction1) % N][0][1]
+                ferminon_number1 = random.choice([0, 1])
+                chain[j][0][1] = ferminon_number1
+                chain[(j+hop_direction1) % N][0][1] = ferminon_number1
     
                 if chain[j][0][1] == 0 and chain[(j+hop_direction1) % N][0][1] == 0:
-                    chain[j][0][1] = None
-                    chain[j][1][1] = None
-                    chain[j][2][1] = None
-                    chain[(j+hop_direction1) % N][0][1] = None
-                    chain[(j+hop_direction1) % N][1][1] = None
-                    chain[(j+hop_direction1) % N][2][1] = None
+                    chain[j][0][1] = -10
+                    chain[j][1][1] = -10
+                    chain[j][2][1] = -10
+                    chain[(j+hop_direction1) % N][0][1] = -10
+                    chain[(j+hop_direction1) % N][1][1] = -10
+                    chain[(j+hop_direction1) % N][2][1] = -10
     
     
                     chain[outside_index_j][0][1] = n_sum1 % 2
-                    chain[outside_index_j][1][1] = True
+                    chain[outside_index_j][1][1] = 47
                     chain[outside_index_j][2][1] = min_index
                     chain[outside_index][0][1] = n_sum1 % 2
-                    chain[outside_index][1][1] = True
+                    chain[outside_index][1][1] = 47
                     chain[outside_index][2][1] = min_index
     
-                # calculate the ferminon number of new arcs
+                # bound back and 2nd braid
                 elif chain[j][0][1] == 1 and chain[(j+hop_direction1) % N][0][1] == 1:
                     q = random.random()
                     if q < p:
-                        if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != None: #if the site is empty
+                        if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
                             # get the index of paired Majorana
                             pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
                             pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
@@ -656,7 +665,7 @@ def hopping_annihilate_2L(chain, p):
                             chain[j][0][1] = (chain[j][0][1]+ 1) % 2
                             chain[(j+hop_direction1) % N][0][1] = (chain[(j+hop_direction1) % N][0][1]+ 1) % 2
     
-                        elif hop_direction1 <0 and chain[j][2][0] != None:
+                        elif hop_direction1 <0 and chain[j][2][0] != -10:
                             # get the index of paired Majorana
                             pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
                             pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
@@ -667,7 +676,7 @@ def hopping_annihilate_2L(chain, p):
                             chain[j][0][0] = (chain[j][0][0] +1 ) % 2
                             chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
                             chain[j][0][1] = (chain[j][0][1]+ 1) % 2
-                            chain[(j+hop_direction1) % N][0][1] = (chain[(j+hop_direction1) % N][0][1]+ 1) % 2
+                            chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
                     
                     #update the parity
                     chain[outside_index_j][0][1] = (n_sum1-chain[j][0][1]) % 2 # conservation of ferminon number
@@ -685,10 +694,11 @@ def hopping_annihilate_2L(chain, p):
                         chain[(j+hop_direction1) % N][2][1] = max_index
                         chain[outside_index_j][2][1] = min_index
                         chain[outside_index][2][1] = min_index
+
     
     
-    density0 = N - chain[:,2,0].tolist().count(None) # Count the number of empty sites
-    density1 = N - chain[:,2,1].tolist().count(None) # Count the number of empty sites
+    density0 = N - chain[:,2,0].tolist().count(-10) # Count the number of empty sites
+    density1 = N - chain[:,2,1].tolist().count(-10) # Count the number of empty sites
     # density = [density0, density1]
     return chain, density0 , density1
 
@@ -730,8 +740,8 @@ def linear_fit(x, y):
 def main_compare():
 # def main():
     chain1 = chain_builder(1000, 4)
-    # print(np.where(chain[:, 1] == True)[0])
-    # print(500 - chain[:,2].tolist().count(None))
+    # print(np.where(chain[:, 1] == 47)[0])
+    # print(500 - chain[:,2].tolist().count(-10))
     times1, density1 = evolution_annihilate(chain1, t =100000)
     chain2 = chain_builder(1000, 4)
     times2, density2 = evolution_classical(chain2, t = 100000)
@@ -842,9 +852,9 @@ def main_test_cl():
 def main():
 
     num_trials = 10  # number of seeds/runs to average
-    N = 100
-    rho = 4
-    Tmax = 10000
+    N = 400
+    rho = 2
+    Tmax = 100000
     p_values = [0, 0.25, 0.5, 0.75, 1]  # different probabilities for your parameter
 
     # For storing average results
