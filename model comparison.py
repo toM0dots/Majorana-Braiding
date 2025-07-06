@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import math
 from collections import Counter
 from typing import List
+from collections import defaultdict
 
 
 
@@ -16,12 +17,108 @@ def chain_builder(N, rho):
     """
     if N % 2 != 0:
         raise ValueError("N must be even for a Majorana chain.")
-    chain = np.full((N* rho, 3) -10) 
+    chain = np.full((N* rho, 3), -10) 
     for i in range(N):
         chain[i * rho][0] = 1 # initially all pairs have fermion number 1
         chain[i * rho][1] = 47
         chain[i * rho][2] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
     return chain
+
+def hopping(chain_):
+    chain = chain_.copy()
+    N = len(chain)
+    index = np.where(chain[:,1] == 47)[0] 
+    Nt = len(index)  # Number of Majoranas at time step t
+    # i =random.randint(0, N-1)
+    for k in range(Nt):
+        index = np.where(chain[:,1] == 47)[0] 
+        i = random.choice(index)
+        hope_direction = np.random.choice([-1, 1])
+        if chain[i][0] == -10: #if the site is empty
+            pass
+
+        elif chain[(i+hope_direction) % N][0] == -10: #if the site to arrive is empty
+            chain[(i+hope_direction) % N][0] = chain[i][0]
+            chain[i][0] = -10
+            chain[(i+hope_direction) % N][1] = chain[i][1]
+            chain[i][1] = -10
+            chain[(i+hope_direction) % N][2] = chain[i][2]
+            chain[i][2] = -10
+            # chain[(i+hope_direction) % N][3] = chain[i][3]
+            # chain[i][3] = -10
+            
+
+        elif chain[(i+hope_direction) % N][2] == chain[i][2]:  #if paired under periodic boundary condition
+            pass # do nothing, the Majorana operators are already paired
+        
+        else:
+            #if hope_direction < 0:
+            # get the index of paired Majorana
+            rows_i = np.where(chain[:, 2] == chain[i][2])[0]
+            rows = np.where(chain[:, 2] == chain[(i+hope_direction) % N][2])[0]
+            outside_index_i = [x for x in rows_i if x != i][0]
+            outside_index = [x for x in rows if x != (i+hope_direction)%N][0]
+
+            # calculate the ferminon number of new arcs
+            ferminon_number =  np.random.choice([0, 1])
+            n_sum = chain[i][0] + chain[(i+hope_direction) % N][0]
+
+            
+            
+            chain[i][0] = ferminon_number
+            chain[(i+hope_direction) % N][0] = ferminon_number
+            chain[outside_index_i][0] = (n_sum-ferminon_number) % 2 # conservation of ferminon number
+            chain[outside_index][0] = (n_sum-ferminon_number) % 2
+
+            # update the pairing index
+            
+            pair_index = chain[(i+hope_direction) % N][2]
+            pair_index_i = chain[i][2]
+            min_index = min(pair_index, pair_index_i)
+            max_index = max(pair_index, pair_index_i)
+
+            if  i == min(i, (i+hope_direction) % N, outside_index_i, outside_index) or (i+hope_direction) % N == min(i, (i+hope_direction) % N, outside_index_i, outside_index):
+                chain[i][2] = min_index
+                chain[(i+hope_direction) % N][2] = min_index
+                chain[outside_index_i][2] = max_index
+                chain[outside_index][2] = max_index
+            else:
+                chain[i][2] = max_index
+                chain[(i+hope_direction) % N][2] = max_index
+                chain[outside_index_i][2] = min_index
+                chain[outside_index][2] = min_index
+    return chain
+    
+
+    
+def worldline(chain):
+    """
+    Generates a worldline representation of the Majorana chain.
+    The function returns a list of pairs (Majorana index, fermion number).
+    """
+    index = np.where(chain[:, 1] == 47)[0]  # Get indices of Majoranas that are present
+    wl = np.zeros((1, len(index)), dtype=object)  # Initialize an empty list for the worldline
+    for i in index:
+        wl[0][chain[i][3]] = i  # position of ith particle
+    return wl
+    
+def evolution(chain, t, plot=False):
+    """
+    Simulates the evolution of the Majorana chain over time t.
+    The function modifies the chain in place.
+    """
+    if plot: 
+        N = len(np.where(chain[:, 1] == 47)[0])  # Number of Majoranas
+        history = np.empty((t, N), dtype=object)  # Initialize history for plotting
+        for i in range(t):
+            chain = hopping(chain)
+            wl = worldline(chain)
+            history[i,:] = wl.reshape(-1)
+        return chain, history
+    else:
+        for _ in range(t):
+            chain = hopping(chain)
+        return chain
 
 def hopping_annihilate(chain):
     N = len(chain)
@@ -29,7 +126,9 @@ def hopping_annihilate(chain):
    
     # i =random.randint(0, N-1)
     index = np.where(chain[:,1]==47)[0]
-    for k in range(len(index)):
+    Nt = len(index)
+    for k in range(Nt):
+        index = np.where(chain[:,1]==47)[0]
         i = random.choice(index)   
         hope_direction = random.choice([-1, 1])
         if  chain[:, 2].tolist().count(-10) == N: #if all sites are empty
@@ -130,7 +229,9 @@ def hopping_classical(chain, p):
    
     # i =random.randint(0, N-1)
     index = np.where(chain[:,1]==47)[0]
-    for _ in range(len(index)):
+    Nt = len(index)
+    for _ in range(Nt):
+        index = np.where(chain[:,1]==47)[0]
         i = random.choice(index)
         hope_direction = random.choice([-1, 1])
         if  chain[:, 2].tolist().count(-10) == N: #if all sites are empty
@@ -209,7 +310,7 @@ def chain_builder_2L(N, rho):
         raise ValueError("N must be even for a Majorana chain.")
     chain = np.full(( N*rho, 3, 2 ), -10) 
     for i in range(N):
-        chain[(i * rho) % (N * rho)][0][0] = 1 # initially all pairs have fermion number 1
+        chain[(i * rho) % (N * rho)][0][0] = 0 # initially all pairs have fermion number 1
         chain[(i * rho) % (N * rho)][1][0] = 47
         chain[(i * rho) % (N * rho)][2][0] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
         chain[(i * rho ) % (N * rho)][0][1] = 1 # initially all pairs have fermion number 1
@@ -228,7 +329,7 @@ def hopping_annihilate_2L(chain, p):
     for _ in range(Nt):
          if  chain[:, 2, 0].tolist().count(-10) == N or chain[:, 2, 1].tolist().count(-10) == N: #if all sites are empty
     
-             return chain, 0, 0
+             return chain, 0, 0, 0 ,0
              
          if random.random() < Nt0/ (Nt0 + Nt1):  
             index0 = np.where(chain[:,0, 0]!=-10)[0]
@@ -699,8 +800,10 @@ def hopping_annihilate_2L(chain, p):
     
     density0 = N - chain[:,2,0].tolist().count(-10) # Count the number of empty sites
     density1 = N - chain[:,2,1].tolist().count(-10) # Count the number of empty sites
+    parity0 = chain[:, 0, 0].sum()
+    parity1 = chain[:, 0 ,1].sum()
     # density = [density0, density1]
-    return chain, density0 , density1
+    return chain, density0 , density1, parity0, parity1
 
 
 def evolution_annihilate_2L(chain, t, p):
@@ -709,13 +812,73 @@ def evolution_annihilate_2L(chain, t, p):
     The function modifies the chain in place.
     """
     density = np.zeros((t, 2), dtype=int)  # Initialize density array for two Majorana operators
+    parity = np.zeros((t, 2), dtype =int)
     times = [k for k in range(t)]
     for k in range(t):
         
-        chain, density0, density1= hopping_annihilate_2L(chain, p)
+        chain, density0, density1, parity0, parity1= hopping_annihilate_2L(chain, p)
         density[k][0] = density0
         density[k][1] = density1
-    return times, density
+        parity[k][0] = parity0
+        parity[k][1] = parity1
+    return times, density, parity
+
+def calculate_pair_distances(chain):
+    """
+    Computes the arc length of Majorana pairs
+    
+    Returns:
+      pair_data: a list of tuples (pair_index, distance)
+      distance_counts: a dictionary mapping distance -> count of pairs with that distance
+    """
+    pair_positions = {}
+    # Loop over each row in the chain and record its index based on its pairing index (third column)
+    for i, row in enumerate(chain):
+        pair_idx = row[2]
+        if pair_idx == -10:
+            pass
+        if pair_idx in pair_positions:
+            pair_positions[pair_idx].append(i)
+        else:
+            pair_positions[pair_idx] = [i]
+    
+    pair_data = []    
+    distance_counts = {} 
+    L = len(chain)
+    for pair_idx, positions in pair_positions.items():
+        if len(positions) == 2:
+            d = min ( abs(positions[1] - positions[0]) , abs(positions[1]-positions[0]+ L),   abs(positions[1]-positions[0]- L) ) # Calculate the distance considering periodic boundary conditions
+            pair_data.append((pair_idx, d))
+            distance_counts[d] = distance_counts.get(d, 0) + 1
+        else:
+            # If there are not exactly two entries for a pair index, issue a warning.
+            print(f"Warning: Pair index {pair_idx} appears {len(positions)} times (expected 2).")
+    
+    return pair_data, distance_counts
+     
+
+def S_A(chain, R):
+    """
+    Calculates entanglement entropy S_A based on the distances of Majorana pairs.
+    
+    Returns:
+      S_A: float
+          The computed value of S_A.
+    """
+    S_A = 0.0
+    x0 = int((len(chain)-R)/2)
+    for i in range(x0, x0+R):
+        if chain[i][0] != -10:
+
+            ids = np.where(chain[:, 2] == chain[i][2])[0]
+            other_majorana = [x for x in ids if x != i][0]
+            if  other_majorana < x0 or other_majorana > x0 + R:  # Check if the paired Majorana is outside the region A
+            # Check if the pair exists
+                S_A += 1
+            # else:
+            #     S_A += 1/2
+    return S_A
+
     
     
 def linear_fit(x, y):
@@ -736,6 +899,22 @@ def linear_fit(x, y):
 # Use np.polyfit for degree 1 polynomial
     a, b = np.polyfit(x, y, 1)
     return a, b   
+def chain_compact(chain):
+    """
+    Converts the Majorana chain into a compact representation.
+
+    Returns:
+      compact_chain: numpy array
+          A 2D array with the first column as Majorana indices and the second column as fermion numbers.
+    """
+    index = np.where(chain[:, 1] == 47)[0]  # Get indices of Majoranas that are present
+    N = len(index)
+    compact_chain = np.zeros((N, 3), dtype=int)
+    for i in range(len(index)):
+        compact_chain[i][0] = chain[index[i]][0]  # Majorana index
+        compact_chain[i][2] = chain[index[i]][2]   # Fermion number
+    return compact_chain
+
 
 def main_compare():
 # def main():
@@ -847,6 +1026,124 @@ def main_test_cl():
     plt.legend()
     plt.savefig('classical_density.png')
     plt.show()
+
+def main_17a():
+# def main():
+    # === Setup ===
+    num_seeds = 50
+    N = 1000
+    rho = 3
+    times = [1, 4, 10, 20, 50, 100, 150]
+    
+    # === Containers for averaging ===
+    all_counts = [defaultdict(list) for _ in times]  # one defaultdict per time
+    
+    
+    # === Main loop over random seeds ===
+    for seed in range(num_seeds):
+        np.random.seed(seed)
+        chain = chain_builder_2L(N, rho)
+    
+        for i, t in enumerate(times):
+            evolved_chain = evolution(chain, t)
+            compacted = chain_compact(evolved_chain)
+            _, distance_counts = calculate_pair_distances(compacted)
+    
+            for d, count in distance_counts.items():
+                all_counts[i][d].append(count)
+    
+    # === Process average results ===
+    avg_counts = []
+    
+    for i, time_counts in enumerate(all_counts):
+        avg = {d: np.mean(c_list) for d, c_list in time_counts.items()}
+        avg_counts.append(avg)
+    
+    # === Plotting ===
+    colors = ['blue', 'red', 'green', 'orange', 'purple', 'yellow', 'pink']
+    
+    for i, (avg_count_dict, color) in enumerate(zip(avg_counts, colors)):
+        distances = sorted(avg_count_dict.keys())
+        counts = [avg_count_dict[d] / (N * rho) for d in distances]
+        plt.plot(distances, counts, label=f't={times[i]}', color=color)
+
+    plt.xlabel('Distance')
+    plt.ylabel('Average Count / (N * ρ)')
+    plt.title('Averaged Pair Distances over Seeds')
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    plt.savefig('17(a).png')
+
+
+def main_17b():
+# def main():
+    # Parameters
+    num_seeds = 20
+    N = 200
+    rho = 4
+    annihilation_times = [10, 100, 1000]
+    colors = ['blue', 'red', 'green', 'orange']
+    labels = ['Initial', 't=10', 't=100', 't=10000']
+    
+    # Accumulators for distance counts at each time point
+    count_accumulators = [defaultdict(list) for _ in range(1 + len(annihilation_times))]
+    
+    # Run simulation across seeds
+    for seed in range(num_seeds):
+        np.random.seed(seed)
+    
+        chain = chain_builder(N, rho)
+        chain1 = evolution(chain, 2000)
+    
+        # Initial distances before annihilation
+        _, distance_counts = calculate_pair_distances(chain1)
+        for d, c in distance_counts.items():
+            count_accumulators[0][d].append(c)
+    
+        # Distances after annihilation at different times
+        for i, t in enumerate(annihilation_times):
+            evolved_chain, _, _ = evolution_annihilate(chain1, t)
+            compacted = chain_compact(evolved_chain)
+            _, distance_counts_ann = calculate_pair_distances(compacted)
+            for d, c in distance_counts_ann.items():
+                count_accumulators[i + 1][d].append(c)
+    
+    # Average counts over seeds
+    averaged_counts = []
+    for dist_dict in count_accumulators:
+        avg = {d: np.mean(c_list) for d, c_list in dist_dict.items()}
+        averaged_counts.append(avg)
+    
+    # === Print distances with average count > 1 ===
+    print("\nDistances with average count > 1:")
+    greater_than_one = []  # for storing
+    for i, avg_dict in enumerate(averaged_counts):
+        print(f"\n--- {labels[i]} ---")
+        gt1 = {d: c for d, c in avg_dict.items() if c > 1.1}
+        greater_than_one.append(gt1)
+        for d, c in sorted(gt1.items()):
+            print(f"Distance: {d}, Avg Count: {c:.2f}")
+    
+    # === Plotting ===
+    for i, avg_dict in enumerate(averaged_counts):
+        distances = sorted(avg_dict.keys())
+        counts = [avg_dict[d] for d in distances]
+        plt.plot(distances, counts, label=labels[i], color=colors[i])
+    
+    
+    plt.xlabel('Distance')
+    plt.ylabel('Average Count')
+    plt.title(f'Averaged P(s) vs s over {num_seeds} seeds')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    plt.savefig('17(b).png')
+
     
 # def main_test2L():
 def main():
@@ -854,7 +1151,7 @@ def main():
     num_trials = 10  # number of seeds/runs to average
     N = 400
     rho = 2
-    Tmax = 100000
+    Tmax = 10000
     p_values = [0, 0.25, 0.5, 0.75, 1]  # different probabilities for your parameter
 
     # For storing average results
@@ -862,23 +1159,27 @@ def main():
 
     for p in p_values:
         densities = []
+        parities = []
     
         for _ in range(num_trials):
             chain = chain_builder_2L(N, rho)
-            times, density = evolution_annihilate_2L(chain, Tmax, p)
+            times, density, parity = evolution_annihilate_2L(chain, Tmax, p)
             total_density = density[:, 0] + density[:, 1]
+            total_parity = parity[:, 0] + parity[:, 1]
             densities.append(total_density)
+            parities.append(total_parity)
     
         # Convert to numpy array and compute average and std
         densities = np.array(densities)/( N * rho) # shape: (num_trials, time_steps)
         mean_density = np.mean(densities, axis=0)
         std_density = np.std(densities, axis=0)
-    
+        mean_parity = np.mean(parities, axis=0)
         # Save for plotting
         all_results[p] = {
             'times': times,
             'mean': mean_density,
-            'std': std_density
+            'std': std_density,
+            'parity' : mean_parity
         }
 
     # Reference density
@@ -890,6 +1191,7 @@ def main():
     for p, color in zip(p_values, ['purple', 'blue', 'orange', 'red', 'green' ]):
         result = all_results[p]
         plt.plot(result['times'], result['mean'], label=f'Total Density p={p}', color=color)
+        # plt.plot(result['times'], result['parity'], label=f'Total Density p={p}', color=color)
         # Optional: error band
         # plt.fill_between(result['times'], result['mean'] - result['std'], result['mean'] + result['std'],
         #                  color=color, alpha=0.2)
@@ -898,13 +1200,14 @@ def main():
     plt.plot(times[1:], density_ref_3, label=r'Reference density $\frac{3}{\sqrt{4 \pi t}}$', color='gray', linestyle='--')
     
     plt.xlabel('Time')
-    plt.ylabel('Density')
+    # plt.ylabel('Density')
+    plt.ylabel('parity')
     plt.xscale('log')
     plt.yscale('log')
     plt.title(f'Averaged Majorana Chain Density (L = {N} * {rho}, Trials = {num_trials}), with separated initial spacing of two layers')
     plt.legend()
     plt.grid()
-    plt.savefig('Two Layer model trend averaged (6)', dpi = 100)
+    plt.savefig('Two Layer model trend averaged (9)', dpi = 100)
     plt.show()
 
 if __name__ == "__main__":
