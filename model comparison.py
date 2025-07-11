@@ -756,9 +756,7 @@ def hopping_annihilate_NL(chain, p):
     #     prob_h = p ** (h) * (1- p) ** (H-h-1)
 
     for _ in range(Nt_total):
-        if any(x == 0 for x in Nt): #if all sites are empty
-    
-            return chain, Nt
+        
         particle_prob = random.random()
         cumulative = 0.0
         chosen_layer = -10
@@ -768,8 +766,12 @@ def hopping_annihilate_NL(chain, p):
                 chosen_layer= m
                 # print(chosen_layer)
                 break
-
-                
+        density = []
+        for h in range(H):
+            density_h = N - chain[:,2,h].tolist().count(-10) # Count the number of empty sites
+            density.append(density_h)
+            if any(d == 0 for d in density): #if all sites are empty
+                return chain, density       
          
         index_m = np.where(chain[:,0, chosen_layer]!=-10)[0]
         i = random.choice(index_m)
@@ -1189,10 +1191,7 @@ def hopping_annihilate_NL(chain, p):
                     chain[outside_index_i][2][chosen_layer] = min_index
                     chain[outside_index][2][chosen_layer] = min_index
     
-    density = []
-    for h in range(H):
-        density_h = N - chain[:,2,h].tolist().count(-10) # Count the number of empty sites
-        density.append(density_h)
+    
     # density = [density0, density1]
     return chain, density
 
@@ -1204,10 +1203,12 @@ def evolution_annihilate_NL(chain_, t, p):
     chain = chain_.copy()  # Create a copy of the chain to avoid modifying the original
     H = chain.shape[2]  # Number of layers
     densities = np.zeros((t, H), dtype=int)  # Initialize density array for two Majorana operators
-    times = [k for k in range(t)]
+    times = []
     for k in range(t):
-        
+        times.append(k)
         chain, density= hopping_annihilate_NL(chain, p)
+        if any(d ==0 for d in density):
+            break
         for h in range(H):
             densities[k][h] = density[h]
         
@@ -1362,7 +1363,7 @@ def main_test_cl():
 def main_17a():
 # def main():
     # === Setup ===
-    num_seeds = 50
+    num_seeds = 5
     N = 1000
     rho = 3
     times = [1, 4, 10, 20, 50, 100, 150]
