@@ -203,6 +203,101 @@ def evolution_classical(chain, t, p =1):
         density.append(x)
     return times, density
 
+def hopping(chain_):
+    chain = chain_.copy()
+    N = len(chain)
+    index = np.where(chain[:,1] == 47)[0] 
+    Nt = len(index)  # Number of Majoranas present
+    # i =random.randint(0, N-1)
+    for _ in range(Nt):
+        index = np.where(chain[:, 1] == 47)[0]  # Update indices of Majoranas that are present
+        i = random.choice(index)
+        hope_direction = np.random.choice([-1, 1])
+        if chain[i][0] == -10: #if the site is empty
+            pass
+
+        elif chain[(i+hope_direction) % N][0] == -10: #if the site to arrive is empty
+            chain[(i+hope_direction) % N][0] = chain[i][0]
+            chain[i][0] = -10
+            chain[(i+hope_direction) % N][1] = chain[i][1]
+            chain[i][1] = -10
+            chain[(i+hope_direction) % N][2] = chain[i][2]
+            chain[i][2] = -10
+            chain[(i+hope_direction) % N][3] = chain[i][3]
+            chain[i][3] = -10
+            
+
+        elif chain[(i+hope_direction) % N][2] == chain[i][2]:  #if paired under periodic boundary condition
+            pass # do nothing, the Majorana operators are already paired
+        
+        else:
+            #if hope_direction < 0:
+            # get the index of paired Majorana
+            rows_i = np.where(chain[:, 2] == chain[i][2])[0]
+            rows = np.where(chain[:, 2] == chain[(i+hope_direction) % N][2])[0]
+            outside_index_i = [x for x in rows_i if x != i][0]
+            outside_index = [x for x in rows if x != (i+hope_direction)%N][0]
+
+            # calculate the ferminon number of new arcs
+            ferminon_number =  np.random.choice([0, 1])
+            n_sum = chain[i][0] + chain[(i+hope_direction) % N][0]
+
+            
+            
+            chain[i][0] = ferminon_number
+            chain[(i+hope_direction) % N][0] = ferminon_number
+            chain[outside_index_i][0] = (n_sum-ferminon_number) % 2 # conservation of ferminon number
+            chain[outside_index][0] = (n_sum-ferminon_number) % 2
+
+            # update the pairing index
+            
+            pair_index = chain[(i+hope_direction) % N][2]
+            pair_index_i = chain[i][2]
+            min_index = min(pair_index, pair_index_i)
+            max_index = max(pair_index, pair_index_i)
+
+            if  i == min(i, (i+hope_direction) % N, outside_index_i, outside_index) or (i+hope_direction) % N == min(i, (i+hope_direction) % N, outside_index_i, outside_index):
+                chain[i][2] = min_index
+                chain[(i+hope_direction) % N][2] = min_index
+                chain[outside_index_i][2] = max_index
+                chain[outside_index][2] = max_index
+            else:
+                chain[i][2] = max_index
+                chain[(i+hope_direction) % N][2] = max_index
+                chain[outside_index_i][2] = min_index
+                chain[outside_index][2] = min_index
+    return chain
+
+
+def evolution(chain, t, plot=False):
+    """
+    Simulates the evolution of the Majorana chain over time t.
+    The function modifies the chain in place.
+    """
+    if plot: 
+        N = len(np.where(chain[:, 1] == 47)[0])  # Number of Majoranas
+        history = np.empty((t, N), dtype=object)  # Initialize history for plotting
+        for i in range(t):
+            chain = hopping(chain)
+            wl = worldline(chain)
+            history[i,:] = wl.reshape(-1)
+        return chain, history
+    else:
+        for _ in range(t):
+            chain = hopping(chain)
+        return chain
+    
+def worldline(chain):
+    """
+    Generates a worldline representation of the Majorana chain.
+    The function returns a list of pairs (Majorana index, fermion number).
+    """
+    index = np.where(chain[:, 1] == 47)[0]  # Get indices of Majoranas that are present
+    wl = np.zeros((1, len(index)), dtype=object)  # Initialize an empty list for the worldline
+    for i in index:
+        wl[0][chain[i][3]] = i  # position of ith particle
+    return wl
+
 
 def chain_builder_2L(N, rho):
     """
@@ -726,6 +821,498 @@ def evolution_annihilate_2L(chain, t, p):
         parity[k][0] = parity0
         parity[k][1] = parity1
     return times, density, parity
+
+
+def hopping_no_annihilate_2L(chain_, p):
+    chain = chain_.copy()
+    N = chain.shape[0]  # Number of sites in the chain
+
+    index0 = np.where(chain[:,1, 0]==47)[0] # get the index of Majorana operators
+    index1 = np.where(chain[:,1, 1]==47)[0]
+    Nt0 = len(index0)
+    Nt1 = len(index1)
+    Nt = Nt0 + Nt1
+    for _ in range(Nt):
+         if  chain[:, 2, 0].tolist().count(-10) == N or chain[:, 2, 1].tolist().count(-10) == N: #if all sites are empty
+
+             return chain, 0, 0, 0 ,0
+
+         if random.random() < Nt0/ (Nt0 + Nt1):
+            index0 = np.where(chain[:,0, 0]!=-10)[0]
+            i = random.choice(index0)
+            hop_direction0 = random.choice([-1, 1])
+
+
+            if chain[i][0][0] == -10: #if the site is empty
+                pass
+
+            elif chain[(i+hop_direction0) % N][0][0] == -10: #if the site to arrive is empty
+
+                r = random.random()
+                if r < p:
+                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != (i+hop_direction0)%N][0]
+
+                        if partner_j == -10:
+                            raise ValueError("Partner Majorana is -10, check the chain structure.")
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+                    elif hop_direction0 >0 and chain[i][2][1] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != i][0]
+
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[i][0][1] = (chain[i][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+                chain[(i+hop_direction0) % N][0][0] = chain[i][0][0]
+                chain[i][0][0] = -10
+                chain[(i+hop_direction0) % N][1][0] = chain[i][1][0]
+                chain[i][1][0] = -10
+                chain[(i+hop_direction0) % N][2][0] = chain[i][2][0]
+                chain[i][2][0] = -10
+
+            elif chain[(i+hop_direction0) % N][2][0] == chain[i][2][0]:  #if paired under periodic boundary condition
+
+                r = random.random()
+                if r < p:
+                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != (i+hop_direction0)%N][0]
+
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+                    elif hop_direction0 >0 and chain[i][2][1] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != i][0]
+
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[i][0][1] = (chain[i][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+
+                r = random.random()
+                if r < p:
+                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != (i+hop_direction0)%N][0]
+
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+                    elif hop_direction0 >0 and chain[i][2][1] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != i][0]
+
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[i][0][1] = (chain[i][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+
+
+            elif chain[i][2][0] !=  chain[(i+hop_direction0) % N][2][0] :
+
+
+                # get the index of paired Majorana
+                rows_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+
+                if len(rows_i) == 0:
+                    raise ValueError("No paired Majorana found for site i.")
+
+                rows = np.where(chain[:, 2, 0] == chain[(i+hop_direction0) % N][2][0])[0]
+                outside_index_i = [x for x in rows_i if x != i][0]
+                outside_index = [x for x in rows if x != (i+hop_direction0)%N][0]
+
+                # 1st braiding
+                r = random.random()
+                if r < p:
+                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != (i+hop_direction0)%N][0]
+
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i ][0][0] = (chain[partner_i ][0][0] + 1) % 2
+                        chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+                    elif hop_direction0 >0 and chain[i][2][1] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != i][0]
+
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i ][0][0] = (chain[partner_i ][0][0] + 1) % 2
+                        chain[i][0][1] = (chain[i][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+                pair_index = chain[(i+hop_direction0) % N][2][0]
+                pair_index_i = chain[i][2][0]
+                min_index = min(pair_index, pair_index_i)
+                max_index = max(pair_index, pair_index_i)
+
+                # repairing at collision after 1st braid and calculate the sum of parity
+                n_sum = chain[i][0][0] + chain[(i+hop_direction0) % N][0][0]
+                ferminon_number = random.choice([0, 1])
+                chain[i][0][0] = ferminon_number
+                chain[(i+hop_direction0) % N][0][0] = ferminon_number
+
+
+                r = random.random()
+                if r < p:
+                    if hop_direction0 <0 and chain[(i+hop_direction0) % N ][2][1] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[(i+hop_direction0) % N][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != (i+hop_direction0)%N][0]
+
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i ][0][0] = (chain[partner_i ][0][0] + 1) % 2
+                        chain[(i+hop_direction0) % N][0][1] = (chain[(i+hop_direction0) % N][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+                    elif hop_direction0 >0 and chain[i][2][1] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[i][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[i][2][1])[0]
+                        partner_i = [x for x in pair_i if x != i][0]
+                        partner_j = [x for x in pair_j if x != i][0]
+
+                        # flip the fermionic parity
+                        chain[i][0][0] = (chain[i][0][0] +1 ) % 2
+                        chain[partner_i ][0][0] = (chain[partner_i ][0][0] + 1) % 2
+                        chain[i][0][1] = (chain[i][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+                # calculate the ferminon number of new arcs
+                chain[outside_index_i][0][0] = (n_sum - chain[i][0][0]) % 2
+                chain[outside_index][0][0] = (n_sum -  chain[(i+hop_direction0) % N][0][0]) % 2
+
+
+                if  i == min(i, (i+hop_direction0) % N, outside_index_i, outside_index) or (i+hop_direction0) % N == min(i, (i+hop_direction0) % N, outside_index_i, outside_index):
+                    chain[i][2][0] = min_index
+                    chain[(i+hop_direction0) % N][2][0] = min_index
+                    chain[outside_index_i][2][0] = max_index
+                    chain[outside_index][2][0] = max_index
+                else:
+                    chain[i][2][0] = max_index
+                    chain[(i+hop_direction0) % N][2][0] = max_index
+                    chain[outside_index_i][2][0] = min_index
+                    chain[outside_index][2][0] = min_index
+
+
+         else:
+            index1 = np.where(chain[:,0, 1]!= -10)[0] # get the index of Majorana operators
+            j = random.choice(index1)
+            hop_direction1 = random.choice([-1, 1])
+            if  chain[:, 2, 1].tolist().count(-10) == N: #if all sites are empty
+
+                return chain, 0, 0
+
+            if chain[j][0][1] == -10: #if the site is empty
+                pass
+
+            elif chain[(j+hop_direction1) % N][0][1] == -10: #if the site to arrive is empty
+
+                q = random.random()
+                if q < p:
+                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
+                        partner_j = [x for x in pair_j if x != j][0]
+                        partner_i = [x for x in pair_i if x != (j+hop_direction1)%N][0]
+
+                        # flip the fermionic parity
+                        chain[(j+hop_direction1) % N][0][0] = (chain[(j+hop_direction1) % N][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+                    elif hop_direction1 <0 and chain[j][2][0] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        partner_i = [x for x in pair_i if x != j][0]
+                        partner_j = [x for x in pair_j if x != j][0]
+
+                        # flip the fermionic parity
+                        chain[j][0][0] = (chain[j][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[partner_j][0][1] = (chain[partner_j][0][1]+ 1) % 2
+
+                chain[(j+hop_direction1) % N][0][1] = chain[j][0][1]
+                chain[j][0][1] = -10
+                chain[(j+hop_direction1) % N][1][1] = chain[j][1][1]
+                chain[j][1][1] = -10
+                chain[(j+hop_direction1) % N][2][1] = chain[j][2][1]
+                chain[j][2][1] = -10
+
+            elif chain[(j+hop_direction1) % N][2][1] == chain[j][2][1]:  #if paired under periodic boundary condition
+
+                q = random.random()
+                if q < p:
+                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
+                        partner_j = [x for x in pair_j if x != j][0]
+                        partner_i = [x for x in pair_i if x != (j+hop_direction1)%N][0]
+
+                        # flip the fermionic parity
+                        chain[(j+hop_direction1) % N][0][0] = (chain[(j+hop_direction1) % N][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
+
+                    elif hop_direction1 <0 and chain[j][2][0] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        partner_i = [x for x in pair_i if x != j][0]
+                        partner_j = [x for x in pair_j if x != j][0]
+
+                        # flip the fermionic parity
+                        chain[j][0][0] = (chain[j][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
+
+
+                q = random.random()
+                if q < p:
+                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
+                        partner_j = [x for x in pair_j if x != j][0]
+                        partner_i = [x for x in pair_i if x != (j+hop_direction1)%N][0]
+
+                        # flip the fermionic parity
+                        chain[(j+hop_direction1) % N][0][0] = (chain[(j+hop_direction1) % N][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
+
+                    elif hop_direction1 <0 and chain[j][2][0] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        partner_i = [x for x in pair_i if x != j][0]
+                        partner_j = [x for x in pair_j if x != j][0]
+
+                        # flip the fermionic parity
+                        chain[j][0][0] = (chain[j][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
+
+            elif chain[j][2][1] !=  chain[(j+hop_direction1) % N][2][1]:
+
+
+                # get the index of paired Majorana
+                rows_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                rows = np.where(chain[:, 2, 1] == chain[(j+hop_direction1) % N][2][1])[0]
+                outside_index_j = [x for x in rows_j if x != j][0]
+                outside_index = [x for x in rows if x != (j+hop_direction1)%N][0]
+
+
+                # 1st braiding
+                q = random.random()
+                if q < p:
+                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
+                        partner_j = [x for x in pair_j if x != j][0]
+                        partner_i = [x for x in pair_i if x != (j+hop_direction1)%N][0]
+
+                        # flip the fermionic parity
+                        chain[(j+hop_direction1) % N][0][0] = (chain[(j+hop_direction1) % N][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
+
+                    elif hop_direction1 <0 and chain[j][2][0] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        partner_i = [x for x in pair_i if x != j][0]
+                        partner_j = [x for x in pair_j if x != j][0]
+
+                        # flip the fermionic parity
+                        chain[j][0][0] = (chain[j][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
+
+                pair_index1 = chain[(j+hop_direction1) % N][2][1]
+                pair_index_j = chain[j][2][1]
+                min_index = min(pair_index1, pair_index_j)
+                max_index = max(pair_index1, pair_index_j)
+                # update the repairing index
+
+
+
+                # repairing, and calculate the parity sum after braiding
+                n_sum1 = chain[j][0][1] + chain[(j+hop_direction1) % N][0][1]
+                ferminon_number1 = random.choice([0, 1])
+                chain[j][0][1] = ferminon_number1
+                chain[(j+hop_direction1) % N][0][1] = ferminon_number1
+
+                q = random.random()
+                if q < p:
+                    if hop_direction1 >0 and chain[(j+hop_direction1) % N ][2][0] != -10: #if the site is empty
+                        # get the index of paired Majorana
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        pair_i = np.where(chain[:, 2, 0] == chain[(j+hop_direction1) % N][2][0])[0]
+                        partner_j = [x for x in pair_j if x != j][0]
+                        partner_i = [x for x in pair_i if x != (j+hop_direction1)%N][0]
+
+                        # flip the fermionic parity
+                        chain[(j+hop_direction1) % N][0][0] = (chain[(j+hop_direction1) % N][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[(j+hop_direction1) % N][0][1] = (chain[(j+hop_direction1) % N][0][1]+ 1) % 2
+
+                    elif hop_direction1 <0 and chain[j][2][0] != -10:
+                        # get the index of paired Majorana
+                        pair_i = np.where(chain[:, 2, 0] == chain[j][2][0])[0]
+                        pair_j = np.where(chain[:, 2, 1] == chain[j][2][1])[0]
+                        partner_i = [x for x in pair_i if x != j][0]
+                        partner_j = [x for x in pair_j if x != j][0]
+
+                        # flip the fermionic parity
+                        chain[j][0][0] = (chain[j][0][0] +1 ) % 2
+                        chain[partner_i][0][0] = (chain[partner_i][0][0] + 1) % 2
+                        chain[j][0][1] = (chain[j][0][1]+ 1) % 2
+                        chain[ partner_j][0][1] = (chain[ partner_j][0][1]+ 1) % 2
+
+                    #update the parity
+                    chain[outside_index_j][0][1] = (n_sum1-chain[j][0][1]) % 2 # conservation of ferminon number
+                    chain[outside_index][0][1] = (n_sum1-chain[(j+hop_direction1) % N][0][1]) % 2
+
+                    # update the pairing index
+
+                    if  j == min(j, (j+hop_direction1) % N, outside_index_j, outside_index) or (j+hop_direction1) % N == min(j, (j+hop_direction1) % N, outside_index_j, outside_index):
+                        chain[j][2][1] = min_index
+                        chain[(j+hop_direction1) % N][2][1] = min_index
+                        chain[outside_index_j][2][1] = max_index
+                        chain[outside_index][2][1] = max_index
+                    else:
+                        chain[j][2][1] = max_index
+                        chain[(j+hop_direction1) % N][2][1] = max_index
+                        chain[outside_index_j][2][1] = min_index
+                        chain[outside_index][2][1] = min_index
+
+
+
+    density0 = N - chain[:,2,0].tolist().count(-10) # Count the number of empty sites
+    density1 = N - chain[:,2,1].tolist().count(-10) # Count the number of empty sites
+    parity0 = chain[:, 0, 0].sum()
+    parity1 = chain[:, 0 ,1].sum()
+    # density = [density0, density1]
+    return chain, density0 , density1, parity0, parity1
+
+def evolution_no_annihilate_2L(chain, t, p):
+    """
+    Simulates the evolution of the Majorana chain over time t.
+    The function modifies the chain in place.
+    """
+    density = np.zeros((t, 2), dtype=int)  # Initialize density array for two Majorana operators
+    parity = np.zeros((t, 2), dtype =int)
+    times = [k for k in range(t)]
+    for k in range(t):
+
+        chain, density0, density1, parity0, parity1= hopping_no_annihilate_2L(chain, p)
+        density[k][0] = density0
+        density[k][1] = density1
+        parity[k][0] = parity0
+        parity[k][1] = parity1
+    return chain, times, density, parity
+
+def calculate_pair_distances_braiding(chain):
+    """
+    Computes the arc length of Majorana pairs
+
+    Returns:
+      pair_data: a list of tuples (pair_index, distance)
+      distance_counts: a dictionary mapping distance -> count of pairs with that distance
+    """
+    H = chain.shape[2]
+    L = chain.shape[0]
+
+    pair_positions = [defaultdict(list) for _ in range(H)]
+    # distance_counts = {}
+    distance_counts = defaultdict(int)
+    # Loop over each row in the chain and record its index based on its pairing index (third column)
+    for h in range(H):
+        for i, row in enumerate(chain[:,:,h]):
+            pair_idx = row[2]
+            if pair_idx == -10:
+                pass
+            if pair_idx in pair_positions[h]:
+                pair_positions[h][pair_idx].append(i)
+            else:
+                pair_positions[h][pair_idx] = [i]
+
+        # pair_data = []
+
+
+        for pair_idx, positions in pair_positions[h].items():
+            if len(positions) == 2:
+                d = min ( abs(positions[1] - positions[0]) , abs(positions[1]-positions[0]+ L),   abs(positions[1]-positions[0]- L) )
+                # pair_data.append((pair_idx, d))
+                distance_counts[d] = distance_counts.get(d, 0) +1
+            else:
+                # If there are not exactly two entries for a pair index, issue a warning.
+                print(f"Warning: Pair index {pair_idx} appears {len(positions)} times (expected 2).")
+
+    return distance_counts
     
 def chain_builder_NL(N, rho, n):
     """
@@ -1214,6 +1801,39 @@ def evolution_annihilate_NL(chain_, t, p):
         
     return times, densities
 
+def calculate_pair_distances(chain):
+    """
+    Computes the arc length of Majorana pairs
+
+    Returns:
+      pair_data: a list of tuples (pair_index, distance)
+      distance_counts: a dictionary mapping distance -> count of pairs with that distance
+    """
+    pair_positions = {}
+    # Loop over each row in the chain and record its index based on its pairing index (third column)
+    for i, row in enumerate(chain):
+        pair_idx = row[2]
+        if pair_idx == -10:
+            pass
+        if pair_idx in pair_positions:
+            pair_positions[pair_idx].append(i)
+        else:
+            pair_positions[pair_idx] = [i]
+
+    pair_data = []
+    distance_counts = defaultdict(int)
+    L = len(chain)
+    for pair_idx, positions in pair_positions.items():
+        if len(positions) == 2:
+            d = min ( abs(positions[1] - positions[0]) , abs(positions[1]-positions[0]+ L),   abs(positions[1]-positions[0]- L) ) # Calculate the distance considering periodic boundary conditions
+            pair_data.append((pair_idx, d))
+            distance_counts[d] = distance_counts.get(d, 0)  +1
+        else:
+            # If there are not exactly two entries for a pair index, issue a warning.
+            print(f"Warning: Pair index {pair_idx} appears {len(positions)} times (expected 2).")
+
+    return pair_data, distance_counts
+
 def linear_fit(x, y):
     """
     Fit a line y = ax + b to the data using least squares.
@@ -1235,7 +1855,7 @@ def linear_fit(x, y):
 
 def chain_compact(chain):
     """
-    Converts the Majorana chain into a compact representation.
+    Remove all empty sites 1D.
 
     Returns:
       compact_chain: numpy array
@@ -1248,6 +1868,32 @@ def chain_compact(chain):
         compact_chain[i][0] = chain[index[i]][0]  # Majorana index
         compact_chain[i][2] = chain[index[i]][2]   # Fermion number
     return compact_chain
+
+def chain_compact_H(chain):
+    """
+    Remove all empty sites N-layer.
+
+    Returns:
+      compact_chain: numpy array
+          A 2D array with the first column as Majorana indices and the second column as fermion numbers.
+    """
+    H = chain.shape[2]
+    N = chain.shape[0]
+    Nt =[]
+    for h in range(H):
+      index = np.where(chain[:, 1, h] == 47)[0]  # Get indices of Majoranas that are present
+      Nt.append(len(index))
+    Nt_short = max(Nt)
+    compact_chain = np.zeros((Nt_short, 3, H), dtype=int)
+    for h in range(H):
+      index = np.where(chain[:, 1, h] == 47)[0]  # Get indices of Majoranas that are present
+      Nt = len(index)
+      
+      for i in range(len(index)):
+          compact_chain[i][0][h] = chain[index[i]][0][h]  # Majorana index
+          compact_chain[i][2][h] = chain[index[i]][2][h]   # Fermion number
+    return compact_chain
+
 
 def main_compare():
 # def main():
@@ -1389,7 +2035,7 @@ def main_17a():
     avg_counts = []
     
     for i, time_counts in enumerate(all_counts):
-        avg = {d: np.mean(c_list) for d, c_list in time_counts.items()}
+        avg = {d: np.sum(c_list)/num_seeds for d, c_list in time_counts.items()}
         avg_counts.append(avg)
     
     # === Plotting ===
@@ -1430,9 +2076,9 @@ def main_17b():
     
         chain = chain_builder(N, rho)
         chain1 = evolution(chain, 2000)
-    
+        chain1_compacted = chain_compact(chain1)
         # Initial distances before annihilation
-        _, distance_counts = calculate_pair_distances(chain1)
+        _, distance_counts = calculate_pair_distances(chain1_compacted)
         for d, c in distance_counts.items():
             count_accumulators[0][d].append(c)
     
@@ -1447,7 +2093,7 @@ def main_17b():
     # Average counts over seeds
     averaged_counts = []
     for dist_dict in count_accumulators:
-        avg = {d: np.mean(c_list) for d, c_list in dist_dict.items()}
+        avg = {d: np.sum(c_list)/num_seeds for d, c_list in dist_dict.items()}
         averaged_counts.append(avg)
     
     # === Print distances with average count > 1 ===
