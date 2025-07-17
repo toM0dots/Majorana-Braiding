@@ -186,7 +186,7 @@ def main():
     rho    = 4
     t_max  = 5000
     seeds  = range(1)
-    params = [0, 0.25, 0.5, 0.75, 1.0]
+    params = [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1.0]
 
     # Prepare a dict to collect density arrays for each param
     densities = {p: [] for p in params}
@@ -202,6 +202,8 @@ def main():
             0.25: chain_builder(N, rho, 0.25),
             0.5 : chain_builder(N, rho, 0.5),
             0.75: chain_builder(N, rho, 0.75),
+            0.85: chain_builder(N, rho, 0.85),
+            0.95 : chain_builder(N, rho, 0.95),
             1.0 : chain_builder(N, rho, 1.0),
         }
 
@@ -222,9 +224,23 @@ def main():
 
     plt.figure(figsize=(12,9))
     for p in params:
-        plt.plot(times, avg_densities[p], label=f"cc={p}")
+        plt.plot(times, avg_densities[p]/(N*rho), label=f"parity-0 ratio ={p}")
     plt.xlabel("time")
     plt.ylabel("⟨density⟩")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend()
+    plt.show()
+
+    plt.figure(figsize=(12,9))
+    for p in params:
+        plt.plot(times, avg_densities[p]*(np.sqrt(4 * np.pi * np.array(times)))/(N*rho), label=f"parity-0 ratio={p}")
+    plt.plot(times, np.full(2, t_max ), linestyle='--', label = '2')
+    plt.plot(times, np.full(1.5, t_max),linestyle='--', label = '1.5')
+    plt.xlabel("time")
+    plt.ylabel("⟨density⟩")
+    plt.xscale('log')
+    # plt.yscale('log')
     plt.legend()
     plt.show()
 
