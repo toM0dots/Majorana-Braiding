@@ -145,7 +145,7 @@ def evolution_annihilate(chain, t):
         
         chain, x = hopping_annihilate(chain)
         density.append(x)
-    return times, density
+    return chain, times, density
 
 def calculate_pair_distances(chain):
     """
@@ -181,26 +181,11 @@ def calculate_pair_distances(chain):
     return pair_data, distance_counts
      
 
-def S_A(chain, R):
-    """
-    Count “whole” and “half” pairs in lst[start:end].
-
-    - If both occurrences of a value fall inside [start,end), it contributes 1.
-    - If exactly one occurrence falls inside, it contributes 0.5.
-    """
-    S_A_ = 0.0
-    start = (len(chain)-R)//2
-    end = start + R -1
-    window = chain[start:end,2]
-    cnt = Counter(window)
-    S_A_ = sum(min(c, 2) * 0.5 for c in cnt.values())
-    return S_A_
-
 def main():
-    N      = 1000
+    N      = 1700
     rho    = 4
     t_max  = 5000
-    seeds  = range(100)
+    seeds  = range(1)
     params = [0, 0.25, 0.5, 0.75, 1.0]
 
     # Prepare a dict to collect density arrays for each param
@@ -214,10 +199,10 @@ def main():
         # build chains for this seed
         chains = {
             0.0 : chain_builder(N, rho, 0.0),
-            0.25: chain_builder_0(N, rho, 0.25),
-            0.5 : chain_builder_0(N, rho, 0.5),
-            0.75: chain_builder_0(N, rho, 0.75),
-            1.0 : chain_builder_0(N, rho, 1.0),
+            0.25: chain_builder(N, rho, 0.25),
+            0.5 : chain_builder(N, rho, 0.5),
+            0.75: chain_builder(N, rho, 0.75),
+            1.0 : chain_builder(N, rho, 1.0),
         }
 
         # run evolution and collect densities
@@ -238,7 +223,10 @@ def main():
     plt.figure(figsize=(12,9))
     for p in params:
         plt.plot(times, avg_densities[p], label=f"cc={p}")
-        plt.xlabel("time")
-        plt.ylabel("⟨density⟩")
-        plt.legend()
-        plt.show()
+    plt.xlabel("time")
+    plt.ylabel("⟨density⟩")
+    plt.legend()
+    plt.show()
+
+if __name__ == "__main__":
+    main()
