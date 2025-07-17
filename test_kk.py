@@ -182,10 +182,10 @@ def calculate_pair_distances(chain):
      
 
 def main():
-    N      = 300
+    N      = 500
     rho    = 4
-    t_max  = 1000
-    seeds  = range(1)
+    t_max  = 7000
+    seeds  = range(50)
     params = [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1.0]
 
     # Prepare a dict to collect density arrays for each param
@@ -225,8 +225,8 @@ def main():
     plt.figure(figsize=(12,9))
     for p in params:
         plt.plot(times, avg_densities[p]/(N*rho), label=f"parity-0 ratio ={p}")
-    plt.plot(times, 2/(np.sqrt(4 * np.pi * np.array(times))), linestyle='--', label = '1/sqrt(4πt)')
-    plt.plot(times, 1.5/(np.sqrt(4 * np.pi * np.array(times))), linestyle='--', label = '1/sqrt(4πt)')
+    plt.plot(times[1:], 2/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '2/sqrt(4πt)')
+    plt.plot(times[1:], 1.5/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1.5/sqrt(4πt)')
     plt.xlabel("time")
     plt.ylabel("⟨density⟩")
     plt.xscale('log')
