@@ -16,12 +16,13 @@ def chain_builder_classical(N, rho, r1):
         raise ValueError("N must be even for a Majorana chain.")
     
     chain = np.full((N* rho, 3), -10) 
-       
+    rho_middle = int(rho * r1)
     for i in range(N):
         if i % 2 == 0:
-            chain[i * rho * r1][0] = 1 # initially all pairs have fermion number 1
-            chain[i * rho * r1][1] = 47
-            chain[i * rho * r1][2] = int(i/2)
+
+            chain[i * rho_middle][0] = 1 # initially all pairs have fermion number 1
+            chain[i * rho_middle][1] = 47
+            chain[i * rho_middle][2] = int(i/2)
             chain[i * rho][0] = 1 # initially all pairs have fermion number 1
             chain[i * rho][1] = 47
             chain[i * rho][2] = int(i/2)
@@ -79,7 +80,7 @@ def evolution_classical(chain, t):
         
         chain, x = hopping_classical(chain)
         density.append(x)
-    return times, density
+    return chain, times, density
 
 
 
@@ -326,8 +327,8 @@ def main_quantum():
 
 def main():
 # def main_classical():
-    N      = 300
-    rho    = 4
+    N      = 100
+    rho    = 10
     t_max  = 1000
     seeds  = range(1)
     params = [0, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
@@ -368,9 +369,9 @@ def main():
 
     plt.figure(figsize=(12,9))
     for p in params:
-        plt.plot(times, avg_densities[p]/(N*rho), label=f"parity-0 ratio ={p}")
-    plt.plot(times, 1/(np.sqrt(4 * np.pi * np.array(times))), linestyle='--', label = '1/sqrt(4πt)')
-    plt.plot(times, 0.75/(np.sqrt(4 * np.pi * np.array(times))), linestyle='--', label = '1/sqrt(4πt)')
+        plt.plot(times, avg_densities[p]/(N*rho), label=f"alternating initial conditions, {p}s, {1-p}s")
+    plt.plot(times[1:], 1/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1/sqrt(4πt)')
+    plt.plot(times[1:], 0.75/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1/sqrt(4πt)')
     plt.xlabel("time")
     plt.ylabel("⟨density⟩")
     plt.xscale('log')
