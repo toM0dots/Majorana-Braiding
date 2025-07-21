@@ -16,16 +16,18 @@ def chain_builder_classical(N, rho, r1):
         raise ValueError("N must be even for a Majorana chain.")
     
     chain = np.full((N* rho, 3), -10) 
-    rho_middle = int(rho * r1)
+       
     for i in range(N):
-        if i % 2 == 0:
-
-            chain[i * rho_middle][0] = 1 # initially all pairs have fermion number 1
-            chain[i * rho_middle][1] = 47
-            chain[i * rho_middle][2] = int(i/2)
-            chain[i * rho][0] = 1 # initially all pairs have fermion number 1
-            chain[i * rho][1] = 47
-            chain[i * rho][2] = int(i/2)
+            
+        rho_middle = int(rho * r1)
+        # print(rho_middle)
+            
+        chain[(i * rho + rho_middle) % (N * rho)][0] = 1 # initially all pairs have fermion number 1
+        chain[(i * rho + rho_middle) % (N * rho)][1] = 47
+        chain[(i * rho + rho_middle) % (N * rho)][2] = int(i/2)
+        chain[((i+1) * rho) % (N * rho)][0] = 1 # initially all pairs have fermion number 1
+        chain[((i+1) * rho) % (N * rho)][1] = 47
+        chain[((i+1) * rho) % (N * rho)][2] = int(i/2)
 
     return chain
 
@@ -327,10 +329,10 @@ def main_quantum():
 
 def main():
 # def main_classical():
-    N      = 100
+    N      = 150
     rho    = 10
-    t_max  = 1000
-    seeds  = range(1)
+    t_max  = 4000
+    seeds  = range(15)
     params = [0, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
 
     # Prepare a dict to collect density arrays for each param
@@ -350,6 +352,9 @@ def main():
             0.8: chain_builder_classical(N, rho, 0.8),
             0.9 : chain_builder_classical(N, rho, 0.9),
             1.0 : chain_builder_classical(N, rho, 1.0),
+            # 0.8: chain_builder_classical(N, 2*rho, 0.2),
+            # 0.9 : chain_builder_classical(N, 2*rho, 0.4),
+            # 1.0: chain_builder_classical(N, 2*rho, 0.6),
         }
 
         # run evolution and collect densities
