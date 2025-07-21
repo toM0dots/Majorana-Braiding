@@ -259,7 +259,8 @@ def calculate_pair_distances(chain):
     return pair_data, distance_counts
      
 
-def main():
+def main_quantum():
+# def main():
     N      = 300
     rho    = 4
     t_max  = 7000
@@ -326,10 +327,10 @@ def main():
 
 def main():
 # def main_classical():
-    N      = 100
+    N      = 500
     rho    = 10
-    t_max  = 1000
-    seeds  = range(1)
+    t_max  = 7000
+    seeds  = range(50)
     params = [0, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
 
     # Prepare a dict to collect density arrays for each param
