@@ -397,6 +397,7 @@ def main():
     plt.xscale('log')
     plt.yscale('log')
     plt.legend()
+    plt.figsave("density_vs_time_classical.png")
     plt.show()
 
     plt.figure(figsize=(12,9))
@@ -410,6 +411,7 @@ def main():
     plt.xscale('log')
     # plt.yscale('log')
     plt.legend()
+    plt.figsave("density_vs_time_classical(1).png")
     plt.show()
 
 if __name__ == "__main__":
