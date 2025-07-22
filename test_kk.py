@@ -28,6 +28,17 @@ def chain_builder_classical(N, rho, r1):
         chain[((i+1) * rho) % (N * rho)][0] = 1 # initially all pairs have fermion number 1
         chain[((i+1) * rho) % (N * rho)][1] = 47
         chain[((i+1) * rho) % (N * rho)][2] = int(i/2)
+            
+        rho_middle = int(rho * r1)
+        # print(rho_middle)
+            
+        chain[(i * rho + rho_middle) % (N * rho)][0] = 1 # initially all pairs have fermion number 1
+        chain[(i * rho + rho_middle) % (N * rho)][1] = 47
+        chain[(i * rho + rho_middle) % (N * rho)][2] = int(i/2)
+        chain[((i+1) * rho) % (N * rho)][0] = 1 # initially all pairs have fermion number 1
+        chain[((i+1) * rho) % (N * rho)][1] = 47
+        chain[((i+1) * rho) % (N * rho)][2] = int(i/2)
+
 
     return chain
 
@@ -329,12 +340,12 @@ def main_quantum():
 
 def main():
 # def main_classical():
-    N      = 500
-    rho    = 10
-    t_max  = 1000
-    seeds  = range(50)
-    params = [0, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
-
+    N      = 200
+    rho    = 20
+    t_max  = 3000
+    seeds  = range(30)
+    # params = [0, 0.1, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
+    params = [0, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5]
     # Prepare a dict to collect density arrays for each param
     densities = {p: [] for p in params}
 
@@ -346,8 +357,12 @@ def main():
         # build chains for this seed
         chains = {
             0.0 : chain_builder_classical(N, rho, 0.0),
+            0.1 : chain_builder_classical(N, rho, 0.1),
             0.2: chain_builder_classical(N, rho, 0.2),
+            0.25: chain_builder_classical(N, rho, 0.25),
+            0.3 : chain_builder_classical(N, rho, 0.3),
             0.4 : chain_builder_classical(N, rho, 0.4),
+            0.5 : chain_builder_classical(N, rho, 0.5),
             0.6: chain_builder_classical(N, rho, 0.6),
             0.8: chain_builder_classical(N, rho, 0.8),
             0.9 : chain_builder_classical(N, rho, 0.9),
@@ -375,8 +390,8 @@ def main():
     plt.figure(figsize=(12,9))
     for p in params:
         plt.plot(times, avg_densities[p]/(N*rho), label=f"alternating initial conditions, {p}s, {1-p}s")
-    plt.plot(times[1:], 1/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1/sqrt(4πt)')
-    plt.plot(times[1:], 0.75/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1/sqrt(4πt)')
+        plt.plot(times[1:], 4*(1-p)*p/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1/sqrt(4πt)')
+    # plt.plot(times[1:], 0.75/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '0.75/sqrt(4πt)')
     plt.xlabel("time")
     plt.ylabel("⟨density⟩")
     plt.xscale('log')
@@ -387,8 +402,9 @@ def main():
     plt.figure(figsize=(12,9))
     for p in params:
         plt.plot(times, avg_densities[p]*(np.sqrt(4 * np.pi * np.array(times)))/(N*rho), label=f"parity-0 ratio={p}")
-    plt.plot(times, np.full(t_max, 1 ), linestyle='--', label = '2')
-    plt.plot(times, np.full(t_max, 0.75),linestyle='--', label = '1.5')
+        plt.plot(times[1:], 4*(1-p)*p/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1/sqrt(4πt)')
+    # plt.plot(times, np.full(t_max, 1 ), linestyle='--', label = '1')
+    # plt.plot(times, np.full(t_max, 0.75),linestyle='--', label = '0.75')
     plt.xlabel("time")
     plt.ylabel("⟨density⟩")
     plt.xscale('log')
