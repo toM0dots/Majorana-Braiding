@@ -363,10 +363,10 @@ def main():
             0.3 : chain_builder_classical(N, rho, 0.3),
             0.4 : chain_builder_classical(N, rho, 0.4),
             0.5 : chain_builder_classical(N, rho, 0.5),
-            0.6: chain_builder_classical(N, rho, 0.6),
-            0.8: chain_builder_classical(N, rho, 0.8),
-            0.9 : chain_builder_classical(N, rho, 0.9),
-            1.0 : chain_builder_classical(N, rho, 1.0),
+            # 0.6: chain_builder_classical(N, rho, 0.6),
+            # 0.8: chain_builder_classical(N, rho, 0.8),
+            # 0.9 : chain_builder_classical(N, rho, 0.9),
+            # 1.0 : chain_builder_classical(N, rho, 1.0),
             # 0.8: chain_builder_classical(N, 2*rho, 0.2),
             # 0.9 : chain_builder_classical(N, 2*rho, 0.4),
             # 1.0: chain_builder_classical(N, 2*rho, 0.6),
@@ -390,20 +390,20 @@ def main():
     plt.figure(figsize=(12,9))
     for p in params:
         plt.plot(times, avg_densities[p]/(N*rho), label=f"alternating initial conditions, {p}s, {1-p}s")
-        plt.plot(times[1:], 4*(1-p)*p/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1/sqrt(4πt)')
+        plt.plot(times[1:], 4*(1-p)*p/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = f'{4*p*(1-p)}/sqrt(4πt)')
     # plt.plot(times[1:], 0.75/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '0.75/sqrt(4πt)')
     plt.xlabel("time")
     plt.ylabel("⟨density⟩")
     plt.xscale('log')
     plt.yscale('log')
     plt.legend()
-    plt.figsave("density_vs_time_classical.png")
+    plt.savefig("density_vs_time_classical.png")
     plt.show()
 
     plt.figure(figsize=(12,9))
     for p in params:
         plt.plot(times, avg_densities[p]*(np.sqrt(4 * np.pi * np.array(times)))/(N*rho), label=f"parity-0 ratio={p}")
-        plt.plot(times[1:], 4*(1-p)*p/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1/sqrt(4πt)')
+        plt.plot(times[1:], np.full(t_max, 4*(1-p)*p) , linestyle='--', label = f'{4*p*(1-p)}/sqrt(4πt)')
     # plt.plot(times, np.full(t_max, 1 ), linestyle='--', label = '1')
     # plt.plot(times, np.full(t_max, 0.75),linestyle='--', label = '0.75')
     plt.xlabel("time")
@@ -411,7 +411,7 @@ def main():
     plt.xscale('log')
     # plt.yscale('log')
     plt.legend()
-    plt.figsave("density_vs_time_classical(1).png")
+    plt.savefig("density_vs_time_classical(1).png")
     plt.show()
 
 if __name__ == "__main__":
