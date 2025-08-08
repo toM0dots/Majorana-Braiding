@@ -142,13 +142,15 @@ def hopping_annihilate(chain):
     index = np.where(chain[:,1]==47)[0]
     Nt = len(index)
     for k in range(Nt):
+        if  chain[:, 2].tolist().count(-10) == N: #if all sites are empty
+
+            return chain, 0
+        
         index = np.where(chain[:,1]==47)[0]
         i = random.choice(index)
 
         hope_direction = random.choice([-1, 1])
-        if  chain[:, 2].tolist().count(-10) == N: #if all sites are empty
-
-            return chain, 0
+        
         if chain[i][0] == -10: #if the site is empty
             pass
 
@@ -272,13 +274,14 @@ def calculate_pair_distances(chain):
     return pair_data, distance_counts
      
 
-def main_quantum():
-# def main():
-    N      = 300
+# def main_quantum():
+def main():
+    N      = 1200
     rho    = 4
-    t_max  = 7000
-    seeds  = range(50)
-    params = [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1.0]
+    t_max  = 16000
+    seeds  = range(15)
+    # params = [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1.0]
+    params = [1.0]
 
     # Prepare a dict to collect density arrays for each param
     densities = {p: [] for p in params}
@@ -289,16 +292,31 @@ def main_quantum():
         np.random.seed(seed)
 
         # build chains for this seed
-        chains = {
-            0.0 : chain_builder(N, rho, 0.0),
-            0.25: chain_builder(N, rho, 0.25),
-            0.5 : chain_builder(N, rho, 0.5),
-            0.75: chain_builder(N, rho, 0.75),
-            0.85: chain_builder(N, rho, 0.85),
-            0.95 : chain_builder(N, rho, 0.95),
-            1.0 : chain_builder(N, rho, 1.0),
-        }
+        # chains = {
+        #     0.0 : chain_builder(N, rho, 0.0),
+        #     0.25: chain_builder(N, rho, 0.25),
+        #     0.5 : chain_builder(N, rho, 0.5),
+        #     0.75: chain_builder(N, rho, 0.75),
+        #     0.85: chain_builder(N, rho, 0.85),
+        #     0.95 : chain_builder(N, rho, 0.95),
+        #     1.0 : chain_builder(N, rho, 1.0),
+        # }
 
+        chains = {
+            p : chain_builder(N, rho, p) for p in params
+            
+        }
+        for chain in chains.values():
+            pass
+            # chain[0*rho][0] = 1
+            # chain[1*rho][0] = 1
+            # chain[2*rho][0] = 1
+            # chain[3*rho][0] = 1
+            # chain[4*rho][0] = 1
+            # chain[5*rho][0] = 1
+            # chain[6*rho][0] = 1
+            # chain[7*rho][0] = 1
+            # chain[8*rho][0] = 1
         # run evolution and collect densities
         for p, chain in chains.items():
             _, times, density = evolution_annihilate(chain, t_max)
@@ -338,8 +356,8 @@ def main_quantum():
     plt.legend()
     plt.show()
 
-def main():
-# def main_classical():
+# def main():
+def main_classical():
     N      = 200
     rho    = 20
     t_max  = 3000
