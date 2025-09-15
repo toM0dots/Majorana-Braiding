@@ -276,12 +276,12 @@ def calculate_pair_distances(chain):
 
 # def main_quantum():
 def main():
-    N      = 1200
-    rho    = 4
-    t_max  = 16000
+    N      = 500
+    rho    = 3
+    t_max  = 250000
     seeds  = range(15)
-    # params = [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1.0]
-    params = [1.0]
+    params = [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1.0]
+    # params = [1.0]
 
     # Prepare a dict to collect density arrays for each param
     densities = {p: [] for p in params}
@@ -335,9 +335,9 @@ def main():
     plt.figure(figsize=(12,9))
     for p in params:
         plt.plot(times, avg_densities[p]/(N*rho), label=f"parity-0 ratio ={p}")
-    plt.plot(times[1:], 2/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '2/sqrt(4πt)')
-    plt.plot(times[1:], 1.5/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '1.5/sqrt(4πt)')
-    plt.xlabel("time")
+    plt.plot(times[1:], 2/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = r'$\frac{2}{\sqrt{4 \pi t}}$')
+    plt.plot(times[1:], 1.5/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = r'$\frac{1.5}{\sqrt{4 \pi t}}$')
+    plt.xlabel("Time")
     plt.ylabel("⟨density⟩")
     plt.xscale('log')
     plt.yscale('log')
@@ -349,6 +349,7 @@ def main():
         plt.plot(times, avg_densities[p]*(np.sqrt(4 * np.pi * np.array(times)))/(N*rho), label=f"parity-0 ratio={p}")
     plt.plot(times, np.full(t_max, 2 ), linestyle='--', label = '2')
     plt.plot(times, np.full(t_max, 1.5),linestyle='--', label = '1.5')
+    # plt.axvline(x = 0.125*(N*rho)**2, color='r', linestyle='--', label = 'D L^2')
     plt.xlabel("time")
     plt.ylabel("⟨density⟩")
     plt.xscale('log')
@@ -361,7 +362,8 @@ def main_classical():
     N      = 200
     rho    = 20
     t_max  = 3000
-    seeds  = range(30)
+    trails = 30
+    seeds  = range(trails)
     # params = [0, 0.1, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
     params = [0, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5]
     # Prepare a dict to collect density arrays for each param
@@ -407,11 +409,12 @@ def main_classical():
 
     plt.figure(figsize=(12,9))
     for p in params:
-        plt.plot(times, avg_densities[p]/(N*rho), label=f"alternating initial conditions, {p}s, {1-p}s")
-        plt.plot(times[1:], 4*(1-p)*p/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = f'{4*p*(1-p)}/sqrt(4πt)')
+        plt.plot(times, avg_densities[p]/(N*rho), label=f"Dual magnetization {p}s, {1-p}s")
+        plt.plot(times[1:], 4*(1-p)*p/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = fr'\frac{{4 {p: .2f} (1-{p: .2f})}}{{\sqrt{{4 \pi t}} }}')
     # plt.plot(times[1:], 0.75/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '0.75/sqrt(4πt)')
-    plt.xlabel("time")
-    plt.ylabel("⟨density⟩")
+    plt.title("Classical density vs time", fontsize=15, fontfamily='Times New Roman')
+    plt.xlabel("Time",fontsize=16, fontfamily='Times New Roman')
+    plt.ylabel(r"$\rho(t)$",fontsize=16, fontfamily='Times New Roman')
     plt.xscale('log')
     plt.yscale('log')
     plt.legend()
@@ -420,16 +423,17 @@ def main_classical():
 
     plt.figure(figsize=(12,9))
     for p in params:
-        plt.plot(times, avg_densities[p]*(np.sqrt(4 * np.pi * np.array(times)))/(N*rho), label=f"parity-0 ratio={p}")
-        plt.plot(times, np.full(t_max, 4*(1-p)*p) , linestyle='--', label = f'{4*p*(1-p)}/sqrt(4πt)')
+        plt.plot(times, avg_densities[p]*(np.sqrt(4 * np.pi * np.array(times)))/(N*rho), label=f"Spin up/down ratio={p: .2f}")
+        plt.plot(times, np.full(t_max, 4*(1-p)*p) , linestyle='--', label = fr'$4 {p: .2f} (1-{p : .2f}) $')
     # plt.plot(times, np.full(t_max, 1 ), linestyle='--', label = '1')
     # plt.plot(times, np.full(t_max, 0.75),linestyle='--', label = '0.75')
-    plt.xlabel("time")
-    plt.ylabel("⟨density⟩")
+    plt.title("Classical density Conserved Quantity", fontsize=20, fontfamily='Times New Roman')
+    plt.xlabel("Time", fontsize=16, fontfamily='Times New Roman')
+    plt.ylabel(r"\rho(t) \sqrt{8 \pi D t}$", fontsize=16, fontfamily='Times New Roman')
     plt.xscale('log')
     # plt.yscale('log')
     plt.legend()
-    plt.savefig("density_vs_time_classical(1).png")
+    plt.savefig(f"density_vs_time_classical_conserved_quantity_{N}*{rho}_trails={trails}.png")
     plt.show()
 
 if __name__ == "__main__":

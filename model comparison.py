@@ -1780,7 +1780,11 @@ def hopping_annihilate_NL(chain, p):
     
     
     # density = [density0, density1]
-    return chain, density
+    parity =[]
+    for _ in range(H):
+        parity_i = chain[:, 0, 0].sum()
+        parity.append(parity_i)
+    return chain, density, parity
 
 def evolution_annihilate_NL(chain_, t, p):
     """
@@ -1790,16 +1794,18 @@ def evolution_annihilate_NL(chain_, t, p):
     chain = chain_.copy()  # Create a copy of the chain to avoid modifying the original
     H = chain.shape[2]  # Number of layers
     densities = np.zeros((t, H), dtype=int)  # Initialize density array for two Majorana operators
+    parities = np.zeros((t, H), dtype=int)
     times = []
     for k in range(t):
         times.append(k)
-        chain, density= hopping_annihilate_NL(chain, p)
+        chain, density, parity= hopping_annihilate_NL(chain, p)
         if any(d ==0 for d in density):
             break
         for h in range(H):
             densities[k][h] = density[h]
+            parities[k][h] = parity[h]
         
-    return times, densities
+    return times, densities, parities
 
 def calculate_pair_distances(chain):
     """
@@ -2127,10 +2133,10 @@ def main_17b():
 # def main_test2L():
 def main():
 
-    num_trials = 40  # number of seeds/runs to average
+    num_trials = 30  # number of seeds/runs to average
     N = 400
     rho = 4
-    layers = 4
+    layers = 5
     Tmax = 10000
     # p_values = [0, 0.25, 0.5, 0.75, 1]  # different probabilities for your parameter
     p_values = [0, 0.5, 1]
@@ -2144,11 +2150,12 @@ def main():
     
         for _ in range(num_trials):
             chain = chain_builder_NL(N, rho, layers)
-            times, density = evolution_annihilate_NL(chain, Tmax, p)
+            times, density, parity = evolution_annihilate_NL(chain, Tmax, p)
             total_density = density.sum(axis =1)
+            total_parity = parity.sum(axis =1)
             # total_parity = parity[:, 0] + parity[:, 1]
             densities.append(total_density)
-            # parities.append(total_parity)
+            parities.append(total_parity)
     
         # Convert to numpy array and compute average and std
         densities = np.array(densities)/( N * rho) # shape: (num_trials, time_steps)
@@ -2162,6 +2169,19 @@ def main():
             'std': std_density,
             'parity' : mean_parity
         }
+    import pandas as pd
+
+    rows = []
+    for p, rec in all_results.items():
+        # assumes these lists are same length for a given p
+        for t, m, s, r in zip(rec['times'], rec['mean'], rec['std'], rec['parity']):
+            rows.append({"p": p, "time": t, "mean": m, "std": s, "parity": r})
+
+    df = pd.DataFrame(rows)
+    
+    tag = "_".join(f"{p:.3g}" for p in p_values)       # '0.1_0.25_1'
+    df.to_csv(f"./results/{N}*{rho}*{layers}_trials{num_trials}_braidingP_{tag}.csv", index=False)
+
 
     # Reference density
     density_ref_4 =  (2* layers) / (math.sqrt(4 * math.pi) * np.sqrt(times[1:]))
@@ -2171,6 +2191,7 @@ def main():
     
     
     # Plotting
+    plt.figure(figsize=(10, 6), dpi=100)
     # for p, color in zip(p_values, ['purple', 'blue', 'orange', 'red', 'green' ]):
     for p, color in zip(p_values, ['purple', 'blue', 'orange' ]):
         result = all_results[p]
@@ -2180,18 +2201,18 @@ def main():
         # plt.fill_between(result['times'], result['mean'] - result['std'], result['mean'] + result['std'],
         #                  color=color, alpha=0.2)
     
-    plt.plot(times[1:], density_ref_4, label=r'Reference density $\frac{2*N}{\sqrt{4 \pi t}}$', color='red', linestyle='--')
-    plt.plot(times[1:], density_ref_3, label=r'Reference density $\frac{N+1}{\sqrt{4 \pi t}}$', color='red', linestyle='--')
-    plt.plot(times[1:], density_ref_2, label=r'Reference density $\frac{N+2}{\sqrt{4 \pi t}}$', color='red', linestyle='--')
+    plt.plot(times[1:], density_ref_4, label=r'Ref $\rho(t) = \frac{2*N}{\sqrt{4 \pi t}}$', color='0.20', linestyle='--')
+    plt.plot(times[1:], density_ref_3, label=r'Ref $\rho(t) = \frac{N+1}{\sqrt{4 \pi t}}$', color='0.60', linestyle='--')
+    plt.plot(times[1:], density_ref_2, label=r'Ref $\rho(t) = \frac{N+2}{\sqrt{4 \pi t}}$', color='0.40', linestyle='--')
     
-    plt.xlabel('Time')
-    # plt.ylabel('Density')
-    plt.ylabel('parity')
+    plt.xlabel('Time',fontsize=16, fontfamily='Times New Roman')
+    plt.ylabel(r'$\rho(t)$',fontsize=16, fontfamily='Times New Roman')
+    # plt.ylabel('parity')
     plt.xscale('log')
     plt.yscale('log')
-    plt.title(f'Averaged Majorana Chain Density (L = {N} * {rho}, Trials = {num_trials}), with separated initial spacing of two layers')
+    plt.title(f'<Density> (L = {N} * {rho}, Trials = {num_trials}), with Spacing={rho}, layer={layers}', fontsize=15, fontweight='bold', fontfamily='Times New Roman')
     plt.legend()
-    plt.grid()
+    plt.grid(True, color='0.9')
     plt.savefig(f'{layers}-Layer averaged (1)', dpi = 100)
     plt.show()
 
