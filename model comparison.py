@@ -1325,7 +1325,7 @@ def chain_builder_NL(N, rho, n):
     chain = np.full((N * rho, 3, n), -10)
     for j in range (n):
         for i in range(N):
-            chain[i * rho][0][j] = 1 # initially all pairs have fermion number 1
+            chain[i * rho][0][j] = 0 # initially all pairs have fermion number 1
             chain[i * rho][1][j] = 47
             chain[i * rho][2][j] = int(i/2) # index for pair (i,j), where i<j, using i to denote the Majorana j is paired with.
     return chain
@@ -1358,7 +1358,11 @@ def hopping_annihilate_NL(chain, p):
             density_h = N - chain[:,2,h].tolist().count(-10) # Count the number of empty sites
             density.append(density_h)
             if any(d == 0 for d in density): #if all sites are empty
-                return chain, density       
+                parity =[]
+                for _ in range(H):
+                    parity_i = chain[:, 0, 0].sum()
+                    parity.append(parity_i)
+                return chain, density, parity       
          
         index_m = np.where(chain[:,0, chosen_layer]!=-10)[0]
         i = random.choice(index_m)
@@ -2133,11 +2137,11 @@ def main_17b():
 # def main_test2L():
 def main():
 
-    num_trials = 30  # number of seeds/runs to average
-    N = 400
+    num_trials = 5  # number of seeds/runs to average
+    N = 200
     rho = 4
     layers = 5
-    Tmax = 10000
+    Tmax = 3000
     # p_values = [0, 0.25, 0.5, 0.75, 1]  # different probabilities for your parameter
     p_values = [0, 0.5, 1]
 
