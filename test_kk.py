@@ -82,18 +82,34 @@ def hopping_classical(chain):
     
     
 
-def evolution_classical(chain, t):
+def evolution_classical(chain, t, fraction = False):
     """
     Simulates the evolution of the Majorana chain over time t.
     The function modifies the chain in place.
     """
     density = []
     times = [i for i in range(t)]
+    N = chain.shape[0] 
+    fractions = np.zeros((t, 2))  # To store even and odd fractions if needed
     for _ in range(t):
         
         chain, x = hopping_classical(chain)
         density.append(x)
-    return chain, times, density
+        if fraction:
+            positions = np.where(chain[:,1]==47)[0]
+            distances = [j - i for i, j in zip(positions, positions[1:])]
+    
+            wrap_dist = (positions[0] + N) - positions[-1]
+            distances.append(wrap_dist)
+            total_gap = sum(distances)
+            even_gap_sum = sum(distances[0::2])  # gaps at indices 0,2,4…
+            odd_gap_sum  = sum(distances[1::2])  # gaps at indices 1,3,5…
+            even_fraction = even_gap_sum / total_gap if total_gap != 0 else 0
+            odd_fraction = odd_gap_sum / total_gap if total_gap != 0 else 0
+            fractions[_][0] = even_fraction
+            fractions[_][1] = odd_fraction
+
+    return chain, times, density, fractions if fraction else None
 
 
 
@@ -276,9 +292,9 @@ def calculate_pair_distances(chain):
 
 # def main_quantum():
 def main():
-    N      = 500
-    rho    = 3
-    t_max  = 250000
+    N      = 1200
+    rho    = 4
+    t_max  = 16000
     seeds  = range(15)
     params = [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1.0]
     # params = [1.0]
@@ -359,8 +375,8 @@ def main():
 
 # def main():
 def main_classical():
-    N      = 200
-    rho    = 20
+    N      = 300
+    rho    = 4
     t_max  = 3000
     trails = 30
     seeds  = range(trails)
@@ -368,6 +384,8 @@ def main_classical():
     params = [0, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5]
     # Prepare a dict to collect density arrays for each param
     densities = {p: [] for p in params}
+    densities = []
+    fractions = []
 
     for seed in seeds:
         # make everything reproducible
@@ -375,27 +393,31 @@ def main_classical():
         np.random.seed(seed)
 
         # build chains for this seed
-        chains = {
-            0.0 : chain_builder_classical(N, rho, 0.0),
-            0.1 : chain_builder_classical(N, rho, 0.1),
-            0.2: chain_builder_classical(N, rho, 0.2),
-            0.25: chain_builder_classical(N, rho, 0.25),
-            0.3 : chain_builder_classical(N, rho, 0.3),
-            0.4 : chain_builder_classical(N, rho, 0.4),
-            0.5 : chain_builder_classical(N, rho, 0.5),
-            # 0.6: chain_builder_classical(N, rho, 0.6),
-            # 0.8: chain_builder_classical(N, rho, 0.8),
-            # 0.9 : chain_builder_classical(N, rho, 0.9),
-            # 1.0 : chain_builder_classical(N, rho, 1.0),
-            # 0.8: chain_builder_classical(N, 2*rho, 0.2),
-            # 0.9 : chain_builder_classical(N, 2*rho, 0.4),
-            # 1.0: chain_builder_classical(N, 2*rho, 0.6),
-        }
+        chain = np.vstack((chain_builder_classical(N, rho, 0.25), chain_builder_classical(N, rho, 0.5)))
+        _, times, density, frac = evolution_classical(chain, t_max, fraction=True)
+        densities.append(density)
+        fractions.append(frac)
+        # chains = {
+        #     0.0 : chain_builder_classical(N, rho, 0.0),
+        #     0.1 : chain_builder_classical(N, rho, 0.1),
+        #     0.2: chain_builder_classical(N, rho, 0.2),
+        #     0.25: chain_builder_classical(N, rho, 0.25),
+        #     0.3 : chain_builder_classical(N, rho, 0.3),
+        #     0.4 : chain_builder_classical(N, rho, 0.4),
+        #     0.5 : chain_builder_classical(N, rho, 0.5),
+        #     # 0.6: chain_builder_classical(N, rho, 0.6),
+        #     # 0.8: chain_builder_classical(N, rho, 0.8),
+        #     # 0.9 : chain_builder_classical(N, rho, 0.9),
+        #     # 1.0 : chain_builder_classical(N, rho, 1.0),
+        #     # 0.8: chain_builder_classical(N, 2*rho, 0.2),
+        #     # 0.9 : chain_builder_classical(N, 2*rho, 0.4),
+        #     # 1.0: chain_builder_classical(N, 2*rho, 0.6),
+        # }
 
         # run evolution and collect densities
-        for p, chain in chains.items():
-            _, times, density = evolution_classical(chain, t_max)
-            densities[p].append(density)
+        # for p, chain in chains.items():
+        #     _, times, density = evolution_classical(chain, t_max)
+        #     densities[p].append(density)
 
     # Now compute the average density vs time for each parameter
     avg_densities = {}
@@ -434,6 +456,79 @@ def main_classical():
     # plt.yscale('log')
     plt.legend()
     plt.savefig(f"density_vs_time_classical_conserved_quantity_{N}*{rho}_trails={trails}.png")
+    plt.show()
+
+def main():
+# def main_ising():
+    N      = 400
+    rho    = 4
+    t_max  = 10000
+    seeds  = range(100)
+    # params = [0, 0.1, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
+    params = [0, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5]
+    # Prepare a dict to collect density arrays for each param
+    densities = {p: [] for p in params}
+    densities = []
+    fractions = []
+
+    for seed in seeds:
+        # make everything reproducible
+        random.seed(seed)
+        np.random.seed(seed)
+
+        # build chains for this seed
+        chain = np.vstack((chain_builder_classical(N, rho, 0.25), chain_builder_classical(N, rho, 0.75)))
+        chain = chain[:-2, :]
+        _, times, density, frac = evolution_classical(chain, t_max, fraction=True)
+        densities.append(density)
+        fractions.append(frac)
+        # chains = {
+        #     0.0 : chain_builder_classical(N, rho, 0.0),
+        #     0.1 : chain_builder_classical(N, rho, 0.1),
+        #     0.2: chain_builder_classical(N, rho, 0.2),
+        #     0.25: chain_builder_classical(N, rho, 0.25),
+        #     0.3 : chain_builder_classical(N, rho, 0.3),
+        #     0.4 : chain_builder_classical(N, rho, 0.4),
+        #     0.5 : chain_builder_classical(N, rho, 0.5),
+        # }
+
+        # run evolution and collect densities
+        # for p, chain in chains.items():
+        #     _, times, density = evolution_classical(chain, t_max)
+        #     densities[p].append(density)
+
+    # Now compute the average density vs time for each parameter
+    avg_densities = np.mean(densities, axis=0)  # shape = (100, len(times))
+    avg_frac = np.mean(fractions, axis=0)  # shape = (100, len(times), 2)
+
+    # Example: plot the 5 averaged curves
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(12,9))
+    plt.plot(times, avg_densities/(2*N*rho), label=f"alternating initial conditions")
+    plt.plot(times[1:], 1/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = f'1/sqrt(4πt)')
+    plt.plot(times[1:], 15/(16*np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = f'15/16sqrt(4πt)')
+    # plt.plot(times[1:], 0.75/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '0.75/sqrt(4πt)')
+    plt.xlabel("time")
+    plt.ylabel("⟨density⟩")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend()
+    # plt.savefig("density_vs_time_classical.png")
+    plt.show()
+
+    avg_frac = np.array(avg_frac)
+    plt.figure(figsize=(12,9))
+    plt.plot(times, 4*avg_frac[:,0]*avg_frac[:,1], label=f"fraction 4x(1-x)")
+    plt.axhline(y=15/16, color='r', linestyle='--', label='1')
+    # plt.plot(times, np.full(t_max, 1 ), linestyle='--', label = '1')
+    # plt.plot(times, np.full(t_max, 0.75),linestyle='--', label = '0.75')
+    plt.xlabel("time")
+    plt.ylabel("constant")
+    plt.xscale('log')
+    # plt.yscale('log')
+    plt.legend()
+    # plt.savefig("density_vs_time_classical(1).png")
     plt.show()
 
 if __name__ == "__main__":
