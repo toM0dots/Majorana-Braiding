@@ -290,13 +290,14 @@ def calculate_pair_distances(chain):
     return pair_data, distance_counts
      
 
-# def main_quantum():
-def main():
-    N      = 1200
-    rho    = 4
-    t_max  = 16000
-    seeds  = range(15)
-    params = [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1.0]
+def main_quantum():
+# def main():
+    N      = 400
+    rho    = 8
+    t_max  = 8000
+    trails =40
+    seeds  = range(trails)
+    params = [0, 0.125, 0.25, 0.5, 0.875, 1.0]
     # params = [1.0]
 
     # Prepare a dict to collect density arrays for each param
@@ -354,10 +355,13 @@ def main():
     plt.plot(times[1:], 2/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = r'$\frac{2}{\sqrt{4 \pi t}}$')
     plt.plot(times[1:], 1.5/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = r'$\frac{1.5}{\sqrt{4 \pi t}}$')
     plt.xlabel("Time")
-    plt.ylabel("⟨density⟩")
+    plt.ylabel(r"$\rho(t)$")
     plt.xscale('log')
     plt.yscale('log')
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.legend()
+    plt.savefig(f"density_vs_time_Majorana_{N}*{rho}_trails={trails}.png")
     plt.show()
 
     plt.figure(figsize=(12,9))
@@ -367,44 +371,55 @@ def main():
     plt.plot(times, np.full(t_max, 1.5),linestyle='--', label = '1.5')
     # plt.axvline(x = 0.125*(N*rho)**2, color='r', linestyle='--', label = 'D L^2')
     plt.xlabel("time")
-    plt.ylabel("⟨density⟩")
+    plt.ylabel(r"$\rho(t)$")
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.xscale('log')
     # plt.yscale('log')
     plt.legend()
+    plt.savefig(f"time_vs_Majorana_conserved_quantity_{N}*{rho}_trails={trails}.png")
     plt.show()
 
-# def main():
-def main_classical():
-    N      = 300
-    rho    = 4
-    t_max  = 3000
+def main():
+# def main_classical():
+    N      = 200
+    rho    = 20
+    t_max  = 5000
     trails = 30
     seeds  = range(trails)
     # params = [0, 0.1, 0.2, 0.4, 0.6, 0.8, 0.9, 1.0]
-    params = [0, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5]
+    params = [0.0, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5]
     # Prepare a dict to collect density arrays for each param
     densities = {p: [] for p in params}
-    densities = []
+    # densities = []
     fractions = []
-
+    colors = {
+                0.0 : '0.1',
+                0.1 : '0.2',
+                0.2: '0.3',
+                0.25: '0.4',
+                0.3 : '0.5',
+                0.4 : '0.6',
+                0.5 : '0.7'
+        }
     for seed in seeds:
         # make everything reproducible
         random.seed(seed)
         np.random.seed(seed)
 
         # build chains for this seed
-        chain = np.vstack((chain_builder_classical(N, rho, 0.25), chain_builder_classical(N, rho, 0.5)))
-        _, times, density, frac = evolution_classical(chain, t_max, fraction=True)
-        densities.append(density)
-        fractions.append(frac)
-        # chains = {
-        #     0.0 : chain_builder_classical(N, rho, 0.0),
-        #     0.1 : chain_builder_classical(N, rho, 0.1),
-        #     0.2: chain_builder_classical(N, rho, 0.2),
-        #     0.25: chain_builder_classical(N, rho, 0.25),
-        #     0.3 : chain_builder_classical(N, rho, 0.3),
-        #     0.4 : chain_builder_classical(N, rho, 0.4),
-        #     0.5 : chain_builder_classical(N, rho, 0.5),
+        # chain = np.vstack((chain_builder_classical(N, rho, 0.25), chain_builder_classical(N, rho, 0.5)))
+        # _, times, density, frac = evolution_classical(chain, t_max, fraction=True)
+        # densities.append(density)
+        # fractions.append(frac)
+        chains = {
+            0.0 : chain_builder_classical(N, rho, 0.0),
+            0.1 : chain_builder_classical(N, rho, 0.1),
+            0.2: chain_builder_classical(N, rho, 0.2),
+            0.25: chain_builder_classical(N, rho, 0.25),
+            0.3 : chain_builder_classical(N, rho, 0.3),
+            0.4 : chain_builder_classical(N, rho, 0.4),
+            0.5 : chain_builder_classical(N, rho, 0.5),
         #     # 0.6: chain_builder_classical(N, rho, 0.6),
         #     # 0.8: chain_builder_classical(N, rho, 0.8),
         #     # 0.9 : chain_builder_classical(N, rho, 0.9),
@@ -412,12 +427,12 @@ def main_classical():
         #     # 0.8: chain_builder_classical(N, 2*rho, 0.2),
         #     # 0.9 : chain_builder_classical(N, 2*rho, 0.4),
         #     # 1.0: chain_builder_classical(N, 2*rho, 0.6),
-        # }
-
+        }
+        
         # run evolution and collect densities
-        # for p, chain in chains.items():
-        #     _, times, density = evolution_classical(chain, t_max)
-        #     densities[p].append(density)
+        for p, chain in chains.items():
+            _, times, density, frac = evolution_classical(chain, t_max)
+            densities[p].append(density)
 
     # Now compute the average density vs time for each parameter
     avg_densities = {}
@@ -432,34 +447,38 @@ def main_classical():
     plt.figure(figsize=(12,9))
     for p in params:
         plt.plot(times, avg_densities[p]/(N*rho), label=f"Dual magnetization {p}s, {1-p}s")
-        plt.plot(times[1:], 4*(1-p)*p/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = fr'\frac{{4 {p: .2f} (1-{p: .2f})}}{{\sqrt{{4 \pi t}} }}')
+        plt.plot(times[1:], 4*(1-p)*p/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = fr'$\frac{{4 \times{p: .2f} \times(1-{p: .2f})}}{{\sqrt{{4 \pi t}} }}$', color= colors[p])
     # plt.plot(times[1:], 0.75/(np.sqrt(4 * np.pi * np.array(times[1:]))), linestyle='--', label = '0.75/sqrt(4πt)')
-    plt.title("Classical density vs time", fontsize=15, fontfamily='Times New Roman')
+    plt.title("Classical Density vs Time", fontsize=15, fontfamily='Times New Roman')
     plt.xlabel("Time",fontsize=16, fontfamily='Times New Roman')
     plt.ylabel(r"$\rho(t)$",fontsize=16, fontfamily='Times New Roman')
     plt.xscale('log')
     plt.yscale('log')
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.legend()
-    plt.savefig("density_vs_time_classical.png")
+    plt.savefig(f"density_vs_time_classical_{N}*{rho}_trails={trails}.png")
     plt.show()
 
     plt.figure(figsize=(12,9))
     for p in params:
         plt.plot(times, avg_densities[p]*(np.sqrt(4 * np.pi * np.array(times)))/(N*rho), label=f"Spin up/down ratio={p: .2f}")
-        plt.plot(times, np.full(t_max, 4*(1-p)*p) , linestyle='--', label = fr'$4 {p: .2f} (1-{p : .2f}) $')
+        plt.plot(times, np.full(t_max, 4*(1-p)*p) , linestyle='--', label = fr'$4 \times {p: .2f} \times(1-{p : .2f}) $')
     # plt.plot(times, np.full(t_max, 1 ), linestyle='--', label = '1')
     # plt.plot(times, np.full(t_max, 0.75),linestyle='--', label = '0.75')
     plt.title("Classical density Conserved Quantity", fontsize=20, fontfamily='Times New Roman')
     plt.xlabel("Time", fontsize=16, fontfamily='Times New Roman')
-    plt.ylabel(r"\rho(t) \sqrt{8 \pi D t}$", fontsize=16, fontfamily='Times New Roman')
+    plt.ylabel(r"$\rho(t) \sqrt{8 \pi D t}$", fontsize=16, fontfamily='Times New Roman')
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.xscale('log')
     # plt.yscale('log')
     plt.legend()
-    plt.savefig(f"density_vs_time_classical_conserved_quantity_{N}*{rho}_trails={trails}.png")
+    plt.savefig(f"time_vs_classical_conserved_quantity_{N}*{rho}_trails={trails}.png")
     plt.show()
 
-def main():
-# def main_ising():
+# def main():
+def main_ising():
     N      = 400
     rho    = 4
     t_max  = 10000
